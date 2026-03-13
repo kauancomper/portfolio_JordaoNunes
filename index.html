@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jordão Nunes — Fotógrafo Profissional</title>
+
+    <!-- SEO e Metadados -->
+    <meta name="description"
+        content="Portfólio de Jordão Nunes Farias, fotógrafo de natureza e vida selvagem em Marabá-PA. Especialista em técnica macro, aves da Amazônia e paisagens urbanas." />
+    <meta name="keywords"
+        content="fotografia técnica, jordão nunes, aves amazônia, macrofotografia fungos, marabá pa, fotógrafo profissional" />
+
+    <!-- Open Graph (Compartilhamento em Redes Sociais) -->
+    <meta property="og:title" content="Jordão Nunes — Fotógrafo de Natureza & Vida Selvagem" />
+    <meta property="og:description"
+        content="Fotografia técnica aplicada à biodiversidade amazônica. Natureza, Wildlife, Urbano e Social em Marabá-PA." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jordaonunes.com.br" />
+    <meta property="og:image" content="https://picsum.photos/seed/amazonia-hero/1200/630" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Jordão Nunes — Fotógrafo" />
+    <meta name="twitter:description" content="Natureza, Wildlife e Marabá pela lente técnica de Jordão Nunes." />
+    <meta name="twitter:image" content="https://picsum.photos/seed/amazonia-hero/1200/630" />
+
+    <!-- Favicon SVG inline (JN icon) -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%238B3FFF' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%238B3FFF'/%3E%3Crect x='22' y='14' width='20' height='6' rx='3' fill='%23fff'/%3E%3C/svg%3E" />
+
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;900&display=swap"
+        rel="stylesheet" />
+
+    <!-- CSS Externo -->
+    <link rel="stylesheet" href="src/css/main.css" />
+</head>
+
+<body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash" class="splash">
+        <div class="splash-inner">
+            <div class="splash-aperture">&#9632;</div>
+            <div class="splash-text">
+                <span class="splash-label">f/2.8</span>
+                <div class="splash-bar">
+                    <div class="splash-progress" id="splash-progress"></div>
+                </div>
+                <span class="splash-label" id="splash-pct">0%</span>
+            </div>
+            <div class="splash-brand">JORDÃO NUNES</div>
+        </div>
+    </div>
+
+    <!-- Navegação Semântica -->
+    <header>
+        <nav class="nav">
+            <div class="nav-logo" id="logo">
+                <div class="nav-logo-dot"></div>
+                JORDÃO NUNES
+            </div>
+            <div class="nav-links" id="nav-menu">
+                <span class="nav-link active" id="nav-home">Início</span>
+                <span class="nav-link" id="nav-portfolio">Portfólio</span>
+                <span class="nav-link" id="nav-about">Sobre</span>
+                <span class="nav-link" id="nav-contact">Contato</span>
+            </div>
+            <div style="display:flex; gap:16px; align-items:center;">
+                <div class="nav-inquire" style="cursor:pointer;">Agendar</div>
+                <button class="hamburger" id="hamburger" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </nav>
+        <div class="mobile-overlay" id="mobile-overlay">
+            <span class="nav-link" id="mob-home">Início</span>
+            <span class="nav-link" id="mob-portfolio">Portfólio</span>
+            <span class="nav-link" id="mob-about">Sobre</span>
+            <span class="nav-link" id="mob-contact">Contato</span>
+            <a href="https://wa.me/5594992112727" class="nav-inquire" style="text-decoration:none; margin-top:16px;"
+                target="_blank">Agendar</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- PORTFOLIO PAGE -->
+        <section id="portfolio-page" class="page">
+            <div class="section" style="padding: 120px 48px 80px;">
+                <div style="margin-bottom: 48px;" data-reveal>
+                    <h2
+                        style="font-family: var(--display); font-weight: 900; font-size: clamp(2.5rem, 7vw, 5rem); line-height: 0.9; margin-bottom: 12px;">
+                        PORTFÓLIO
+                        <span
+                            style="color: var(--purple); font-family: var(--serif); font-style: italic;">Completo</span>
+                    </h2>
+                    <p style="color: var(--silver); font-size: 13px; letter-spacing: 0.1em;">Todas as fotografias em
+                        ordem de publicação</p>
+                </div>
+                <div class="gallery-grid portfolio-all-grid" id="portfolio-grid"></div>
+            </div>
+        </section>
+
+        <!-- HOME PAGE -->
+        <section id="home-page" class="page active">
+            <div class="hero">
+                <!-- Foto de fundo do hero -->
+                <div class="hero-bg" style="position:absolute;inset:0;z-index:0;overflow:hidden;">
+                    <img src="src/assets/img/jn-3d.png" alt="Fotografia Amazônia"
+                        style="width:100%;height:100%;object-fit:cover;filter:brightness(0.35) saturate(0.8);">
+                    <div
+                        style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);">
+                    </div>
+                </div>
+                <div class="hero-content">
+                    <h1 class="hero-grand" data-reveal>JORDÃO<br>NUNES</h1>
+                    <span class="hero-dimensions" data-reveal>Fotógrafo</span>
+                    <p class="hero-desc" style="margin: 40px auto; color: var(--silver); max-width: 450px;" data-reveal>
+                        A ciência do olhar técnico aplicada à biodiversidade amazônica. Detalhes invisíveis capturados
+                        com precisão cirúrgica.
+                    </p>
+                    <div class="nav-inquire"
+                        style="display:inline-block; border-radius: 4px; border: 1px solid var(--purple);" data-reveal>
+                        Conecte-se →</div>
+                </div>
+
+                <!-- Elemento 3D Isométrico -->
+                <div class="iso-container" data-reveal>
+                    <!-- RECOMENDAÇÃO: Salve a imagem 'JN 3D' do chat como: src/assets/img/jn-3d.png -->
+                    <img src="https://images.unsplash.com/photo-1634507000790-a35f52479e0a?q=80&w=2670&auto=format&fit=crop"
+                        id="jn-3d-img"
+                        style="width: 100%; border-radius: 12px; box-shadow: 0 40px 100px rgba(139, 63, 255, 0.2);"
+                        alt="JN 3D isometric studio">
+                </div>
+            </div>
+
+            <!-- CATEGORIES FILTER -->
+            <div class="section" style="padding-top: 40px; text-align: center;">
+                <div class="nav-links"
+                    style="display: inline-flex; justify-content: center; background: rgba(255,255,255,0.03); padding: 10px 30px; border-radius: 40px; border: 1px solid var(--line);">
+                    <span class="nav-link active gal-filter" id="nature">Natureza</span>
+                    <span class="nav-link gal-filter" id="wildlife">Vida Selvagem</span>
+                    <span class="nav-link gal-filter" id="urban">Urbano</span>
+                    <span class="nav-link gal-filter" id="social">Social</span>
+                </div>
+            </div>
+
+            <!-- GALERIA REFINADA -->
+            <div class="section">
+                <div class="gallery-grid" id="home-gallery-grid"></div>
+            </div>
+        </section>
+
+        <!-- ABOUT PAGE -->
+        <section id="about-page" class="page">
+            <div class="section" style="padding: 120px 64px 64px;">
+                <div
+                    style="max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.5fr; gap: 80px; align-items: start;">
+                    <div data-reveal>
+                        <h2
+                            style="font-family: var(--display); font-weight: 900; font-size: 3rem; line-height: 1; margin-bottom: 32px;">
+                            O OLHAR TÉCNICO</h2>
+                        <div
+                            style="border-left: 2px solid var(--purple); padding-left: 24px; color: var(--silver); font-size: 0.9rem; line-height: 1.8;">
+                            <p style="margin-bottom: 20px;">Jordão Nunes Farias é um fotógrafo radicado em Marabá, no
+                                coração do Pará. Especialista em fotografia de vida selvagem e equipado com tecnologia
+                                de ponta, seu trabalho busca revelar detalhes que muitas vezes passam despercebidos ao
+                                olho nu.</p>
+                            <p>Sua precisão técnica já rendeu reconhecimentos internacionais, incluindo seleções para a
+                                prestigiada galeria da <strong>National Geographic (Your Shot)</strong>.</p>
+                        </div>
+                    </div>
+                    <div data-reveal style="color: rgba(255,255,255,0.8); line-height: 1.6; font-weight: 300;">
+                        <p style="margin-bottom: 24px;">Atuando profissionalmente desde 2020, Jordão consolidou seu nome
+                            como uma referência na documentação visual da fauna e flora amazônica. Sua abordagem une a
+                            paciência do observador de aves (ornitologia fotográfica) com a exatidão da fotografia
+                            técnica aérea e paisagística.</p>
+                        <p style="margin-bottom: 24px;">Seja capturando o voo preciso de uma ave rara no Rio Itacaiúnas
+                            ou a geometria complexa da arquitetura de Marabá, cada disparo é uma masterclass em
+                            fidelidade de cores e nitidez extrema.</p>
+                        <div style="margin-top: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+                            <div>
+                                <h4
+                                    style="color: var(--purple); margin-bottom: 8px; font-size: 0.8rem; letter-spacing: 0.2em;">
+                                    SPECIALTY</h4>
+                                <span style="font-size: 1.2rem; font-family: var(--serif);">Wildlife & Macro</span>
+                            </div>
+                            <div>
+                                <h4
+                                    style="color: var(--purple); margin-bottom: 8px; font-size: 0.8rem; letter-spacing: 0.2em;">
+                                    BASE</h4>
+                                <span style="font-size: 1.2rem; font-family: var(--serif);">Marabá, Pará</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT PAGE -->
+        <section id="contact-page" class="page">
+            <div class="section" style="padding: 120px 64px;">
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <!-- Título -->
+                    <h2 style="font-family: var(--display); font-weight: 900; font-size: clamp(3rem, 8vw, 5rem); line-height: 0.9; margin-bottom: 16px;"
+                        data-reveal>VAMOS FOTOGRAFAR
+                        <br><span
+                            style="color: var(--purple); font-family: var(--serif); font-style: italic;">JUNTOS</span>
+                    </h2>
+                    <p style="color: var(--silver); margin-bottom: 64px; font-size: 14px; line-height: 1.6;"
+                        data-reveal>Disponível para expedições fotográficas, projetos documentais e licenciamento de
+                        imagens em todo o Brasil.</p>
+
+                    <!-- Formulário -->
+                    <form id="contact-form" data-reveal>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="fc-nome">Nome Completo</label>
+                                <input type="text" id="fc-nome" placeholder="Seu nome" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fc-email">E-mail</label>
+                                <input type="email" id="fc-email" placeholder="seu@email.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="fc-projeto">Tipo de Projeto</label>
+                            <select id="fc-projeto">
+                                <option value="">Selecione...</option>
+                                <option value="Expedição Fotográfica">Expedição Fotográfica</option>
+                                <option value="Licenciamento de Imagem">Licenciamento de Imagem</option>
+                                <option value="Projeto Documental">Projeto Documental</option>
+                                <option value="Evento">Evento / Cobertura</option>
+                                <option value="Parceria">Parceria Comercial</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fc-msg">Mensagem</label>
+                            <textarea id="fc-msg" rows="5" placeholder="Conte sobre seu projeto..." required></textarea>
+                        </div>
+                        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                            <button type="submit" class="nav-inquire form-btn">Enviar via Gmail →</button>
+                        </div>
+                        <p id="form-success" class="form-success" style="display:none;">✓ Mensagem preparada! O Gmail
+                            abrirá com todos os dados preenchidos.</p>
+                    </form>
+
+                    <!-- Canais Diretos -->
+                    <div style="margin-top: 64px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;"
+                        data-reveal>
+                        <!-- WhatsApp -->
+                        <a href="https://wa.me/5594992112727?text=Olá%20Jordão!%20Vim%20pelo%20seu%20portfólio%20e%20gostaria%20de%20conversar%20"
+                            target="_blank" class="contact-channel">
+                            <div class="contact-channel-icon" style="color: #25D366;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                                    <path
+                                        d="M12 0C5.373 0 0 5.373 0 12c0 2.062.525 4.001 1.446 5.691L0 24l6.473-1.425A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-4.989-1.362l-.357-.212-3.702.815.876-3.606-.233-.371A9.769 9.769 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="contact-channel-title">WhatsApp</div>
+                                <div class="contact-channel-sub">(94) 99211-2727 · Resposta rápida</div>
+                            </div>
+                        </a>
+                        <!-- Gmail -->
+                        <a href="https://mail.google.com/mail/?view=cm&to=jordao@hnnbl.com.br" target="_blank"
+                            class="contact-channel">
+                            <div class="contact-channel-icon" style="color: var(--purple);">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                                    <polyline points="2,4 12,13 22,4" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="contact-channel-title">E-mail</div>
+                                <div class="contact-channel-sub">jordao@hnnbl.com.br</div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Contatos Diretos -->
+                    <div
+                        style="margin-top: 80px; display: flex; justify-content: flex-start; gap: 48px; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; padding-top: 48px; border-top: 1px solid var(--line);">
+                        <a href="https://mail.google.com/mail/?view=cm&to=jordao@hnnbl.com.br" target="_blank"
+                            style="color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.3s;"
+                            onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+                            jordao@hnnbl.com.br
+                        </a>
+                        <a href="https://www.instagram.com/jordaonunes/" target="_blank"
+                            style="color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.3s;"
+                            onmouseover="this.style.color='var(--purple)'"
+                            onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+                            @jordaonunes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Rodapé Semântico -->
+    <footer class="footer">
+        <div class="footer-logo">JORDÃO NUNES</div>
+        <div class="footer-links">
+            <a href="https://www.instagram.com/jordaonunes/" target="_blank"
+                style="color:var(--white); text-decoration: none;">Instagram</a>
+            <a href="https://mail.google.com/mail/?view=cm&to=jordao@hnnbl.com.br" target="_blank"
+                style="color:var(--white); text-decoration: none;">Email</a>
+            <a href="https://wa.me/5594992112727" target="_blank"
+                style="color:var(--white); text-decoration: none;">WhatsApp</a>
+        </div>
+        <div class="footer-copy">© 2026 Todos os direitos reservados. Desenvolvido por Kauan Comper.</div>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Visualizador de imagem">
+        <button class="lb-close" id="lb-close" aria-label="Fechar">✕</button>
+        <button class="lb-nav lb-prev" id="lb-prev" aria-label="Anterior">&#8592;</button>
+        <button class="lb-nav lb-next" id="lb-next" aria-label="Próxima">&#8594;</button>
+        <div class="lb-content">
+            <img id="lb-img" src="" alt="">
+            <div class="lb-meta">
+                <span id="lb-cat" class="gal-info-tag"></span>
+                <p id="lb-caption" class="lb-caption-text"></p>
+                <a id="lb-link" href="#" target="_blank" class="lb-instagram-link">Ver no Instagram →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Externo -->
+    <script src="src/js/main.js"></script>
+</body>
+
+</html>
