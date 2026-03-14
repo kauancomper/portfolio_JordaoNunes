@@ -97,7 +97,29 @@ body{background:var(--bg);color:var(--white);font-family:var(--body);overflow-x:
     text-align: center; color: var(--silver);
     display: flex; flex-direction: column; gap: 8px; align-items: center;
 }
-.lb-caption-text { font-size: 14px; max-width: 500px; line-height: 1.6; }
+.lb-caption-text { 
+    font-size: 13px; 
+    max-width: 550px; 
+    line-height: 1.8; 
+    max-height: 100px; 
+    overflow-y: auto; 
+    padding: 0 20px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 300;
+    scrollbar-width: thin;
+    scrollbar-color: var(--purple) transparent;
+}
+/* Scrollbar customizada para Chrome/Edge/Safari */
+.lb-caption-text::-webkit-scrollbar {
+    width: 3px;
+}
+.lb-caption-text::-webkit-scrollbar-track {
+    background: transparent;
+}
+.lb-caption-text::-webkit-scrollbar-thumb {
+    background: var(--purple);
+    border-radius: 10px;
+}
 .lb-instagram-link {
     color: var(--purple); text-decoration: none; font-size: 11px;
     letter-spacing: 0.2em; text-transform: uppercase;
@@ -381,3 +403,55 @@ body{background:var(--bg);color:var(--white);font-family:var(--body);overflow-x:
     #contact-page [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
 }
 
+
+/* ══ GALLERY EMPTY STATE ══ */
+.gallery-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 100px 20px;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.01);
+}
+.gallery-empty-icon {
+    font-size: 40px;
+    color: var(--purple);
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+.gallery-empty-text {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--white);
+    margin-bottom: 8px;
+}
+.gallery-empty-sub {
+    font-size: 11px;
+    color: var(--silver);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* ══ FILTER ANIMATION ══ */
+.gal-filter {
+    position: relative;
+    overflow: hidden;
+}
+.gal-filter::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0; width: 0; height: 1px;
+    background: var(--purple);
+    transition: width 0.3s ease;
+}
+.gal-filter.active::after {
+    width: 100%;
+}
+#home-gallery-grid {
+    min-height: 400px;
+    transition: opacity 0.4s ease;
+}
+#home-gallery-grid.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}

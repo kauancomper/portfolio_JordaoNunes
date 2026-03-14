@@ -159,46 +159,117 @@
 
         <!-- ABOUT PAGE -->
         <section id="about-page" class="page">
-            <div class="section" style="padding: 120px 64px 64px;">
-                <div
-                    style="max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.5fr; gap: 80px; align-items: start;">
-                    <div data-reveal>
+            <div class="section" style="padding: 120px 64px 80px;">
+                <div style="max-width: 1100px; margin: 0 auto;">
+
+                    <!-- Título da seção -->
+                    <div style="margin-bottom: 64px;" data-reveal>
                         <h2
-                            style="font-family: var(--display); font-weight: 900; font-size: 3rem; line-height: 1; margin-bottom: 32px;">
-                            O OLHAR TÉCNICO</h2>
-                        <div
-                            style="border-left: 2px solid var(--purple); padding-left: 24px; color: var(--silver); font-size: 0.9rem; line-height: 1.8;">
-                            <p style="margin-bottom: 20px;">Jordão Nunes Farias é um fotógrafo radicado em Marabá, no
-                                coração do Pará. Especialista em fotografia de vida selvagem e equipado com tecnologia
-                                de ponta, seu trabalho busca revelar detalhes que muitas vezes passam despercebidos ao
-                                olho nu.</p>
-                            <p>Sua precisão técnica já rendeu reconhecimentos internacionais, incluindo seleções para a
-                                prestigiada galeria da <strong>National Geographic (Your Shot)</strong>.</p>
+                            style="font-family: var(--display); font-weight: 900; font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 0.9; margin-bottom: 12px;">
+                            O OLHAR <span
+                                style="color: var(--purple); font-family: var(--serif); font-style: italic;">Técnico</span>
+                        </h2>
+                        <p style="color: var(--silver); font-size: 13px; letter-spacing: 0.1em;">Fotógrafo de Natureza &
+                            Vida Selvagem · Marabá, PA</p>
+                    </div>
+
+                    <!-- Grid principal: foto + textos -->
+                    <div style="display: grid; grid-template-columns: 320px 1fr; gap: 80px; align-items: start;">
+
+                        <!-- Coluna da Foto -->
+                        <div data-reveal style="position: relative;">
+                            <!-- Frame decorativo com glow roxo -->
+                            <div style="position: relative; display: inline-block; width: 100%;">
+                                <div style="
+                                    position: absolute; inset: -3px;
+                                    background: linear-gradient(135deg, var(--purple), transparent 60%);
+                                    border-radius: 16px;
+                                    z-index: 0;
+                                "></div>
+                                <img src="src/assets/img/jordao01.jpg" alt="Jordão Nunes Farias — Fotógrafo" style="
+                                        position: relative; z-index: 1;
+                                        width: 100%;
+                                        aspect-ratio: 3/4;
+                                        object-fit: cover;
+                                        border-radius: 14px;
+                                        display: block;
+                                        box-shadow: 0 32px 80px rgba(139, 63, 255, 0.25);
+                                    ">
+                            </div>
+                            <!-- Badge flutuante -->
+                            <div style="
+                                position: absolute; bottom: -20px; right: -20px;
+                                background: var(--purple);
+                                color: #fff;
+                                font-size: 0.7rem;
+                                font-weight: 700;
+                                letter-spacing: 0.15em;
+                                text-transform: uppercase;
+                                padding: 10px 18px;
+                                border-radius: 8px;
+                                box-shadow: 0 8px 24px rgba(139, 63, 255, 0.4);
+                                z-index: 2;
+                            ">Jordão Nunes Farias</div>
+                        </div>
+
+                        <!-- Coluna de Texto -->
+                        <div>
+                            <div data-reveal
+                                style="border-left: 2px solid var(--purple); padding-left: 28px; color: var(--silver); font-size: 0.95rem; line-height: 1.9; margin-bottom: 40px;">
+                                <p style="margin-bottom: 20px;">Jordão Nunes Farias é um fotógrafo radicado em Marabá,
+                                    no
+                                    coração do Pará. Especialista em fotografia de vida selvagem e equipado com
+                                    tecnologia
+                                    de ponta, seu trabalho busca revelar detalhes que muitas vezes passam despercebidos
+                                    ao
+                                    olho nu.</p>
+                                <p>Sua precisão técnica já rendeu reconhecimentos internacionais, incluindo seleções
+                                    para a
+                                    prestigiada galeria da <strong style="color: #fff;">National Geographic (Your
+                                        Shot)</strong>.</p>
+                            </div>
+
+                            <div data-reveal
+                                style="color: rgba(255,255,255,0.75); line-height: 1.8; font-weight: 300; font-size: 0.9rem; margin-bottom: 48px;">
+                                <p style="margin-bottom: 20px;">Atuando profissionalmente desde 2020, Jordão consolidou
+                                    seu nome
+                                    como uma referência na documentação visual da fauna e flora amazônica. Sua abordagem
+                                    une a
+                                    paciência do observador de aves (ornitologia fotográfica) com a exatidão da
+                                    fotografia
+                                    técnica aérea e paisagística.</p>
+                                <p>Seja capturando o voo preciso de uma ave rara no Rio Itacaiúnas
+                                    ou a geometria complexa da arquitetura de Marabá, cada disparo é uma masterclass em
+                                    fidelidade de cores e nitidez extrema.</p>
+                            </div>
+
+                            <!-- Stats -->
+                            <div data-reveal style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                                <div
+                                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 12px; padding: 20px;">
+                                    <h4
+                                        style="color: var(--purple); margin-bottom: 6px; font-size: 0.7rem; letter-spacing: 0.2em;">
+                                        DESDE</h4>
+                                    <span style="font-size: 1.4rem; font-family: var(--serif);">2020</span>
+                                </div>
+                                <div
+                                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 12px; padding: 20px;">
+                                    <h4
+                                        style="color: var(--purple); margin-bottom: 6px; font-size: 0.7rem; letter-spacing: 0.2em;">
+                                        SPECIALTY</h4>
+                                    <span style="font-size: 1rem; font-family: var(--serif);">Wildlife & Macro</span>
+                                </div>
+                                <div
+                                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 12px; padding: 20px;">
+                                    <h4
+                                        style="color: var(--purple); margin-bottom: 6px; font-size: 0.7rem; letter-spacing: 0.2em;">
+                                        BASE</h4>
+                                    <span style="font-size: 1rem; font-family: var(--serif);">Marabá, PA</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div data-reveal style="color: rgba(255,255,255,0.8); line-height: 1.6; font-weight: 300;">
-                        <p style="margin-bottom: 24px;">Atuando profissionalmente desde 2020, Jordão consolidou seu nome
-                            como uma referência na documentação visual da fauna e flora amazônica. Sua abordagem une a
-                            paciência do observador de aves (ornitologia fotográfica) com a exatidão da fotografia
-                            técnica aérea e paisagística.</p>
-                        <p style="margin-bottom: 24px;">Seja capturando o voo preciso de uma ave rara no Rio Itacaiúnas
-                            ou a geometria complexa da arquitetura de Marabá, cada disparo é uma masterclass em
-                            fidelidade de cores e nitidez extrema.</p>
-                        <div style="margin-top: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
-                            <div>
-                                <h4
-                                    style="color: var(--purple); margin-bottom: 8px; font-size: 0.8rem; letter-spacing: 0.2em;">
-                                    SPECIALTY</h4>
-                                <span style="font-size: 1.2rem; font-family: var(--serif);">Wildlife & Macro</span>
-                            </div>
-                            <div>
-                                <h4
-                                    style="color: var(--purple); margin-bottom: 8px; font-size: 0.8rem; letter-spacing: 0.2em;">
-                                    BASE</h4>
-                                <span style="font-size: 1.2rem; font-family: var(--serif);">Marabá, Pará</span>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </section>
