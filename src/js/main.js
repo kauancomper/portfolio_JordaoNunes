@@ -85,24 +85,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ══ INSTAGRAM INTEGRATION (via Behold.so) ══
-    const BEHOLD_URL = "https://feeds.behold.so/2nVNxB2RdKJ6i9mJ2nKM";
+    const BEHOLD_URL = "https://feeds.behold.so/dDpAFVwfxIST9MZ9QQJm";
     let allInstagramPosts = [];
 
     async function loadInstagramFeed() {
+        const DB_URL = "src/data/instagram_db.json";
+
+        try {
+            // 1. Tentar carregar do banco de dados local (acumulado)
+            const dbResponse = await fetch(DB_URL);
+            if (dbResponse.ok) {
+                const dbData = await dbResponse.json();
+                if (dbData && dbData.length > 0) {
+                    allInstagramPosts = dbData.map(post => ({
+                        ...post,
+                        cat: categorizePost(post.caption || '')
+                    }));
+                    console.log(`✅ Carregadas ${allInstagramPosts.length} fotos do banco local.`);
+                    filterGallery('nature');
+                    return; // Se carregou do banco, já temos o que precisamos
+                }
+            }
+        } catch (e) {
+            console.warn("Aviso: Banco de dados local não encontrado ou vazio. Usando feed em tempo real.");
+        }
+
+        // 2. Fallback: Se o banco estiver vazio, usa o Behold (apenas as últimas 5)
         if (!BEHOLD_URL) {
+            // (O array de fallback picsum que já existia...)
             allInstagramPosts = [
-                // NATUREZA (5 fotos)
-                { id: 1, url: 'https://picsum.photos/seed/fern-green/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Micro mundo — samambaia amazônica • Natureza', cat: 'nature' },
-                { id: 2, url: 'https://picsum.photos/seed/raindrop-leaf/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Gota de orvalho na folhagem • Natureza', cat: 'nature' },
-                { id: 3, url: 'https://picsum.photos/seed/mushroom-para/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Cogumelo parasol no Piquiazal • Natureza', cat: 'nature' },
-                { id: 4, url: 'https://picsum.photos/seed/forest-mist/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Cerrado mistico ao entardecer • Natureza', cat: 'nature' },
-                { id: 5, url: 'https://picsum.photos/seed/bromeliad-jn/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Bromélia selvagem na mata ciliar • Natureza', cat: 'nature' },
-                // VIDA SELVAGEM (5 fotos)
-                { id: 6, url: 'https://picsum.photos/seed/arara-blue/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Arara Canindé em vôo livre • Wildlife', cat: 'wildlife' },
-                { id: 7, url: 'https://picsum.photos/seed/heron-river/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Garça branca no Rio Itacaiúnas • Wildlife', cat: 'wildlife' },
-                { id: 8, url: 'https://picsum.photos/seed/hawk-flight/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Gavião caratã cacando • Wildlife', cat: 'wildlife' },
-                { id: 9, url: 'https://picsum.photos/seed/frog-amazon/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Perereca verde amazônica • Wildlife', cat: 'wildlife' },
-                { id: 10, url: 'https://picsum.photos/seed/lizard-stones/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Tejupã sobre pedras do Rio • Wildlife', cat: 'wildlife' },
+                // NATUREZA & VIDA SELVAGEM (10 fotos)
+                { id: 1, url: 'https://picsum.photos/seed/fern-green/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Mundo Micro: Fungo na Floresta Amazônica • Natureza', cat: 'nature' },
+                { id: 2, url: 'https://picsum.photos/seed/raindrop-leaf/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Detalhe da chuva sobre a flora local • Natureza', cat: 'nature' },
+                { id: 3, url: 'https://picsum.photos/seed/mushroom-para/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Biodiversidade paraense • Natureza', cat: 'nature' },
+                { id: 4, url: 'https://picsum.photos/seed/forest-mist/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Caminhos da floresta secundária • Natureza', cat: 'nature' },
+                { id: 5, url: 'https://picsum.photos/seed/bromeliad-jn/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Bromélia nativa em detalhe • Natureza', cat: 'nature' },
+                { id: 6, url: 'https://picsum.photos/seed/arara-blue/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Arara Canindé em vôo livre • Natureza', cat: 'nature' },
+                { id: 7, url: 'https://picsum.photos/seed/heron-river/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Garça branca no Rio Itacaiúnas • Natureza', cat: 'nature' },
+                { id: 8, url: 'https://picsum.photos/seed/hawk-flight/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Gavião caratã cacando • Natureza', cat: 'nature' },
+                { id: 9, url: 'https://picsum.photos/seed/frog-amazon/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Perereca verde amazônica • Natureza', cat: 'nature' },
+                { id: 10, url: 'https://picsum.photos/seed/lizard-stones/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Tejupã sobre pedras do Rio • Natureza', cat: 'nature' },
                 // URBANO (5 fotos)
                 { id: 11, url: 'https://picsum.photos/seed/bridge-maraba/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Ponte Ana Miranda • Marabá PA', cat: 'urban' },
                 { id: 12, url: 'https://picsum.photos/seed/city-night/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Marabá ao entardecer • Urbano', cat: 'urban' },
@@ -144,10 +166,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function categorizePost(caption) {
         const text = caption.toLowerCase();
-        if (text.includes('fungo') || text.includes('cogumelo') || text.includes('natureza') || text.includes('flora')) return 'nature';
-        if (text.includes('ave') || text.includes('passaro') || text.includes('wildlife') || text.includes('animal')) return 'wildlife';
-        if (text.includes('cidade') || text.includes('maraba') || text.includes('ponte') || text.includes('urbano')) return 'urban';
-        if (text.includes('social') || text.includes('evento') || text.includes('projeto') || text.includes('parceria') || text.includes('branding') || text.includes('design')) return 'social';
+
+        // 1. Social, Cultural e Religioso
+        if (text.includes('cirio') || text.includes('nazaré') || text.includes('festa') ||
+            text.includes('social') || text.includes('evento') || text.includes('projeto') ||
+            text.includes('fé') || text.includes('documental') || text.includes('branding')) return 'social';
+
+        // 2. Urbano e Arquitetura
+        if (text.includes('cidade') || text.includes('maraba') || text.includes('ponte') ||
+            text.includes('urbano') || text.includes('rua') || text.includes('arquitetura')) return 'urban';
+
+        // 3. Natureza & Vida Selvagem (Fundidos)
+        if (text.includes('nature') || text.includes('natureza') || text.includes('flora') ||
+            text.includes('fungo') || text.includes('cogumelo') || text.includes('rio') ||
+            text.includes('ave') || text.includes('passaro') || text.includes('animal') ||
+            text.includes('fauna') || text.includes('wildlife')) return 'nature';
+
         return 'nature';
     }
 
@@ -270,6 +304,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Fechar menu ao clicar num link mobile
+    // ══ FILTROS DA GALERIA ══
+    document.querySelectorAll('.gal-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active de todos
+            document.querySelectorAll('.gal-filter').forEach(b => b.classList.remove('active'));
+            // Adiciona no clicado
+            btn.classList.add('active');
+            // Filtra
+            filterGallery(btn.id);
+        });
+    });
     mobileOverlay?.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', () => {
             hamburger.classList.remove('open');
