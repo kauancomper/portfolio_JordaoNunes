@@ -143,7 +143,8 @@ async def extrair_instagram_dom(username):
             else:
                 # Lógica de Login Humano
                 try:
-                    await page.wait_for_selector('input[name="username"]', timeout=10000)
+                    print(f"URL atual antes do seletor: {page.url}")
+                    await page.wait_for_selector('input[name="username"]', timeout=30000)
                     
                     # Simula digitação humana
                     async def type_human(selector, text):
@@ -161,13 +162,17 @@ async def extrair_instagram_dom(username):
                     await page.click('button[type="submit"]')
                     
                     # Espera o login concluir ou pedir 2FA
-                    await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=20000)
+                    await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=30000)
                     print("Login realizado com sucesso!")
                     await context.storage_state(path=session_file)
                 except Exception as e:
                     print(f"❌ Falha no login automático: {e}")
-                    print("Verifique se há Desafio de Segurança (Capcha/2FA).")
-                    await page.wait_for_timeout(30000) # Espera um pouco antes de desistir
+                    print(f"URL final da falha: {page.url}")
+                    if "challenge" in page.url or "checkpoint" in page.url:
+                        print("🚨 BLOQUEIO DETECTADO: O Instagram solicitou uma verificação de segurança (Captcha/2FA).")
+                    else:
+                        print("Verifique se as credenciais estão corretas ou se a página mudou.")
+                    await page.wait_for_timeout(30000)
 
         print(f"\nAcessando perfil: @{username}")
         await page.goto(f"https://www.instagram.com/{username}/", timeout=60000)
