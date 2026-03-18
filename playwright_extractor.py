@@ -40,15 +40,37 @@ SOCIAL_KEYWORDS = [
 # Blacklist: Termos que indicam fotos de perfil/pessoais (O que o usuário quer REMOVER)
 BLACKLIST = [
     "selfie", "rosto", "look", "moda", "estilo", "promoção", "sorteio", "maquiagem",
-    "lookdodia", "ensaio pessoal", "minha foto", "eu no", "close de rosto"
+    "lookdodia", "ensaio pessoal", "minha foto", "eu no", "close de rosto", "retrato"
 ]
+
+def detecta_pessoas_alt(alt_texts):
+    """Detecta se o Alt-Text do Instagram indica presença indesejada de pessoas/selfies."""
+    padroes_pessoa = [
+        r"imagem pode conter: (\d+) pesso", # "1 pessoa", "2 pessoas"
+        r"imagem pode conter: rosto",
+        r"pode ser uma imagem de (\d+) pesso",
+        r"pode ser uma imagem de rosto",
+        r"pessoa sorrindo",
+        r"selfie",
+        r"em pé",
+        r"sentado"
+    ]
+    texto_total = " ".join(alt_texts).lower()
+    for p in padroes_pessoa:
+        if re.search(p, texto_total):
+            return True
+    return False
 
 def categorizar_e_filtrar(caption, alt_texts):
     texto_imagens = " ".join(alt_texts).lower()
     texto_legenda = caption.lower()
     texto_total = f"{texto_imagens} {texto_legenda}"
     
-    # 1. Verifica Blacklist (Prioridade máxima de descarte)
+    # 1. Verifica Detecção Automática de Pessoas no Alt-Text (Acessibilidade do Insta)
+    if detecta_pessoas_alt(alt_texts):
+        return None
+
+    # 2. Verifica Blacklist Manual na Legenda
     for word in BLACKLIST:
         if word in texto_total:
             return None
@@ -292,15 +314,28 @@ async def extrair_instagram_dom(username):
                     await page.keyboard.press("Escape")
                     continue
 
-                # Pega a legenda baseada na tag h1 específica do modal
+                # Pega a legenda de forma ASSERTIVA (O primeiro <li> dentro do <ul> lateral)
                 caption = ""
                 try:
-                    h1_elems = await page.query_selector_all('role=dialog >> h1')
-                    for h1 in h1_elems:
-                        # Pega o texto de dentro do h1, que geralmente é a legenda principal
-                        caption += await h1.inner_text() + " "
+                    # O Instagram coloca a legenda no primeiro item de uma lista <ul>
+                    # O seletor abaixo mira no texto do autor ignorando o nome de usuário se possível
+                    caption_container = await page.query_selector('role=dialog >> article ul span._ap3a, role=dialog >> article ul span')
+                    if caption_container:
+                        caption = await caption_container.inner_text()
+                    
+                    if not caption:
+                        # Fallback seguro se o seletor acima falhar
+                        h1_elem = await page.query_selector('role=dialog >> h1')
+                        if h1_elem:
+                            # A legenda muitas vezes é o vizinho do H1 que contém o nome do usuário
+                            parent = await h1_elem.query_selector('xpath=..')
+                            if parent:
+                                caption = await parent.inner_text()
                 except:
                     pass
+                
+                # Limpeza simples da legenda para remover o nome do usuário se ele vier colado
+                caption = re.sub(f"^{username}\\s*", "", caption, flags=re.IGNORECASE).strip()
 
                 # Filtro de Palavras Baseado na Legenda ou no ALT da imagem inicial
                 
