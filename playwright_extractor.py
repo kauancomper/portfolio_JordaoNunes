@@ -1,15 +1,21 @@
+import os
 import asyncio
 import json
 import re
+import random
 from datetime import datetime, timezone
 from playwright.async_api import async_playwright
-import os
+from playwright_stealth import stealth_async
 
 # Configurações de Filtro e Automação
 ANOS_LIMITE = 3
 LIMITE_MAX_POSTS = 25
 INTERVALO_MINUTOS = 60 # Tempo de espera entre verificações
-HEADLESS = True # Defina como True para rodar em servidores (sem interface visual)
+HEADLESS = True 
+# Credenciais via Variáveis de Ambiente (Configure no Easypanel)
+INSTA_USER = os.getenv("INSTA_USER", "jordaonunes")
+INSTA_PASS = os.getenv("INSTA_PASS", "")
+PROXY_SERVER = os.getenv("PROXY_SERVER", "") # Ex: http://user:pass@host:port
 
 # Palavras-chave por Categoria (Refinado para Eventos Sociais)
 CAT_KEYWORDS = {
@@ -70,34 +76,75 @@ async def extrair_instagram_dom(username):
     async with async_playwright() as p:
         session_file = "instagram_session.json"
         
+        # Configura Proxy se disponível
+        browser_args = ["--disable-blink-features=AutomationControlled"]
+        proxy_config = None
+        if PROXY_SERVER:
+            proxy_config = {"server": PROXY_SERVER}
+            print(f"Usando Proxy: {PROXY_SERVER}")
+
         # Inicia o navegador com argumentos anti-detecção
         browser = await p.chromium.launch(
             headless=HEADLESS,
-            args=["--disable-blink-features=AutomationControlled"]
+            args=browser_args,
+            proxy=proxy_config
         )
         
         if os.path.exists(session_file):
             context = await browser.new_context(
                 storage_state=session_file,
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                proxy=proxy_config
             )
         else:
             context = await browser.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                proxy=proxy_config
             )
 
         page = await context.new_page()
+        await stealth_async(page) # Mascara o navegador contra detecção de bot
         
         print("Acessando Instagram...")
-        await page.goto("https://www.instagram.com/")
+        await page.goto("https://www.instagram.com/", wait_until="networkidle")
         
+        # 1. TENTA LOGIN POR SESSÃO OU POR CREDENCIAIS
         try:
-            await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=5000)
-            print("Login confirmado!")
+            await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=7000)
+            print("Sessão ativa confirmada!")
         except:
-            print("\n⚠️ ATENÇÃO: Faça login no navegador aberto.")
-            await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=300000)
-            await context.storage_state(path=session_file)
+            print("Sessão expirada ou inexistente. Tentando login automático...")
+            if not INSTA_PASS:
+                print("⚠️ ERRO: Senha não configurada (INSTA_PASS). O login manual será necessário.")
+                await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=300000)
+            else:
+                # Lógica de Login Humano
+                try:
+                    await page.wait_for_selector('input[name="username"]', timeout=10000)
+                    
+                    # Simula digitação humana
+                    async def type_human(selector, text):
+                        await page.click(selector)
+                        for char in text:
+                            await page.keyboard.type(char, delay=random.randint(50, 200))
+                            await asyncio.sleep(random.uniform(0.05, 0.15))
+
+                    await type_human('input[name="username"]', INSTA_USER)
+                    await asyncio.sleep(random.uniform(1, 2))
+                    await type_human('input[name="password"]', INSTA_PASS)
+                    await asyncio.sleep(random.uniform(1, 2))
+                    
+                    # Clica no botão de login
+                    await page.click('button[type="submit"]')
+                    
+                    # Espera o login concluir ou pedir 2FA
+                    await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=20000)
+                    print("Login realizado com sucesso!")
+                    await context.storage_state(path=session_file)
+                except Exception as e:
+                    print(f"❌ Falha no login automático: {e}")
+                    print("Verifique se há Desafio de Segurança (Capcha/2FA).")
+                    await page.wait_for_timeout(30000) # Espera um pouco antes de desistir
 
         print(f"\nAcessando perfil: @{username}")
         await page.goto(f"https://www.instagram.com/{username}/", timeout=60000)

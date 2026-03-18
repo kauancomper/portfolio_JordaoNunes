@@ -4,6 +4,9 @@ FROM python:3.11-slim
 # Evita que o Python gere arquivos .pyc e permite logs em tempo real
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV INSTA_USER="jordaonunes"
+ENV INSTA_PASS=""
+ENV PROXY_SERVER=""
 
 # Instala o Nginx e dependências do sistema para o Playwright
 RUN apt-get update && apt-get install -y \
