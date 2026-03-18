@@ -129,7 +129,7 @@ async def extrair_instagram_dom(username):
                 print(f"Aviso: Falha ao ativar modo Stealth: {e}")
         
         print("Acessando Instagram...")
-        await page.goto("https://www.instagram.com/", wait_until="networkidle")
+        await page.goto("https://www.instagram.com/", wait_until="domcontentloaded", timeout=60000)
         
         # 1. TENTA LOGIN POR SESSÃO OU POR CREDENCIAIS
         try:
