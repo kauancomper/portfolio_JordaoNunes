@@ -34,14 +34,18 @@ O projeto está configurado para rodar via Docker. O container executa:
 1. **Nginx**: Servindo os arquivos estáticos na porta 80.
 2. **Scraper**: Rodando em loop infinito, verificando novas fotos a cada hora (ajustável no script).
 
-## Manutenção
+## Configuração no Easypanel (Automação Total)
 
-### Atualizando Cookies do Instagram
-Se o scraper parar de funcionar por erro de login:
-1. Rode o script localmente.
-2. Faça o login manual quando o navegador abrir.
-3. O arquivo `instagram_session.json` será atualizado.
-4. Suba o novo arquivo para o servidor.
+Para que o scraper rode 100% sozinho, vá na aba **Environment** do seu App no Easypanel e adicione:
+
+- `INSTA_USER`: Seu usuário do Instagram.
+- `INSTA_PASS`: Sua senha do Instagram.
+- `PROXY_SERVER`: (Opcional) Seu link de proxy, se tiver um (ex: `http://user:pass@host:port`).
+
+### Como evitar bloqueios:
+1.  **Modo Stealth**: O script já usa técnicas para esconder que é um robô.
+2.  **Digitação Humana**: O login simula a velocidade de uma pessoa digitando.
+3.  **Sessão Persistente**: O script tenta usar os cookies salvos antes de tentar um login novo.
 
 ---
-Desenvolvido por Antigravity para Jordão Nunes.
+Desenvolvido por Kauan Comper para Jordão Nunes.
