@@ -5,7 +5,13 @@ import re
 import random
 from datetime import datetime, timezone
 from playwright.async_api import async_playwright
-from playwright_stealth import stealth
+try:
+    from playwright_stealth import stealth_async as stealth_func
+except ImportError:
+    try:
+        from playwright_stealth import stealth as stealth_func
+    except ImportError:
+        stealth_func = None
 
 # Configurações de Filtro e Automação
 ANOS_LIMITE = 3
@@ -103,7 +109,15 @@ async def extrair_instagram_dom(username):
             )
 
         page = await context.new_page()
-        await stealth(page) # Mascara o navegador contra detecção de bot
+        if stealth_func:
+            try:
+                if hasattr(stealth_func, 'stealth'):
+                    await stealth_func.stealth(page)
+                else:
+                    await stealth_func(page)
+                print("Modo Stealth ativado.")
+            except Exception as e:
+                print(f"Aviso: Falha ao ativar modo Stealth: {e}")
         
         print("Acessando Instagram...")
         await page.goto("https://www.instagram.com/", wait_until="networkidle")
