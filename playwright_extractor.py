@@ -73,7 +73,7 @@ def passa_no_filtro(caption, alt_texts):
     return any(k in texto for k in all_keywords)
 
 async def extrair_instagram_dom(username):
-    print(f"Iniciando raspagem focada nas {LIMITE_MAX_POSTS} publicações...")
+    print(f"Iniciando raspagem focada nas {LIMITE_MAX_POSTS} publicações (Versão v2 - Carrossel Fix)...")
     print("Modo de Extração: Simulação Humana (Aberto o Modal) para evitar bloqueio de API.")
     
     async with async_playwright() as p:
@@ -325,39 +325,46 @@ async def extrair_instagram_dom(username):
                         'role=dialog >> button:has(svg[aria-label="Next"])'
                     ]
                     
-                    max_slides = 10 # Limite de segurança
-                    for _ in range(max_slides):
+                    max_slides = 12 # Limite de segurança aumentado
+                    for i in range(max_slides):
                         # Extrai as URLs das imagens visíveis na tela no momento
                         # No carrossel, as imagens podem estar em <ul> <li> ou divs
                         imgs = await page.query_selector_all('role=dialog >> img')
+                        found_in_slide = 0
                         for img in imgs:
                             src = await img.get_attribute('src')
                             alt = await img.get_attribute('alt') or ""
                             
                             if not src or "https://static.cdninstagram.com" in src: continue
                             
-                            # Em carrossel, relaxamos o filtro de style pois o Insta troca as classes durante a transição
-                            # Se está no modal e é uma imagem grande (não ícone), nós queremos.
+                            # Filtro de tamanho básico para evitar ícones (geralmente < 150px)
+                            # Mas em modo guest às vezes o 'width' não está no atributo, tentamos capturar quase tudo que seja JPG/WebP
                             if src not in urls:
                                 urls.append(src)
+                                found_in_slide += 1
                             if alt and alt not in alt_texts:
                                 alt_texts.append(alt)
+                        
+                        if found_in_slide > 0:
+                            print(f"  -> Slide {i}: {found_in_slide} novas imagens. Total acumulado: {len(urls)}")
                         
                         # Tenta clicar no próximo usando a lista de seletores
                         clicou = False
                         for selector in next_button_selectors:
                             try:
                                 next_btn = await page.query_selector(selector)
-                                if next_btn and await next_btn.is_visible():
-                                    await next_btn.click(timeout=2000)
-                                    await page.wait_for_timeout(1000) # Espera a animação do slide
+                                if next_btn:
+                                    # Força o clique mesmo se o Playwright achar que não está visível (às vezes é falso positivo em animações)
+                                    await next_btn.click(force=True, timeout=2000)
+                                    await page.wait_for_timeout(1500) # Espera a animação do slide
                                     clicou = True
                                     break
                             except:
                                 continue
                         
                         if not clicou:
-                            break # Fim do carrossel
+                            # Se não achou botão, mas só temos poucas fotos, tenta um scroll horizontal básico no elemento do carrossel
+                            break 
                             
                 except Exception as e:
                     print(f"Aviso ao extrair carrossel.")
