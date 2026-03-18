@@ -158,7 +158,18 @@ async def extrair_instagram_dom(username):
                 # Lógica de Login Humano
                 try:
                     print(f"URL atual antes do seletor: {page.url}")
-                    # Às vezes o seletor demora por causa de banners
+                    
+                    # Se redirecionou para a home sem estar logado, procura o botão de "Entrar"
+                    if page.url == "https://www.instagram.com/":
+                        try:
+                            login_button = await page.get_by_role("link", name="Entrar").first
+                            if await login_button.is_visible():
+                                await login_button.click()
+                                await page.wait_for_timeout(3000)
+                        except:
+                            pass
+
+                    # Às vezes o seletor demora por causa de banners ou carregamento lento
                     await page.wait_for_selector('input[name="username"]', timeout=45000)
                     
                     # Simula digitação humana
