@@ -337,11 +337,12 @@ body{background:var(--bg);color:var(--white);font-family:var(--body);overflow-x:
     background: #000;
     display: flex; align-items: center; justify-content: center;
     transition: opacity 0.8s ease, visibility 0.8s ease;
+    opacity: 1 !important; visibility: visible !important; /* Forçado inicial */
 }
-.splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.splash.splash-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none; }
 .splash-inner { display: flex; flex-direction: column; align-items: center; gap: 24px; }
 .splash-aperture {
-    font-size: 64px; color: var(--purple);
+    font-size: 64px; color: #8B3FFF;
     animation: shutter 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; line-height: 1;
 }
 @keyframes shutter {
@@ -350,10 +351,10 @@ body{background:var(--bg);color:var(--white);font-family:var(--body);overflow-x:
     100% { transform: scale(1) rotate(0deg);    opacity: 1; }
 }
 .splash-text { display: flex; align-items: center; gap: 12px; }
-.splash-label { font-size: 9px; letter-spacing: 0.3em; color: #444; font-family: 'Courier New', monospace; text-transform: uppercase; }
+.splash-label { font-size: 9px; letter-spacing: 0.3em; color: #fff; font-family: 'Courier New', monospace; text-transform: uppercase; }
 .splash-bar { width: 120px; height: 1px; background: #1a1a1a; position: relative; }
 .splash-progress { position: absolute; inset: 0; background: var(--purple); width: 0%; transition: width 0.05s linear; }
-.splash-brand { font-family: var(--display); font-weight: 900; font-size: 11px; letter-spacing: 0.4em; color: #222; text-transform: uppercase; }
+.splash-brand { font-family: var(--display); font-weight: 900; font-size: 11px; letter-spacing: 0.4em; color: #fff; text-transform: uppercase; }
 
 /* ══ CONTACT FORM ══ */
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }

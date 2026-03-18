@@ -5,13 +5,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const progress = document.getElementById('splash-progress');
     const pctLabel = document.getElementById('splash-pct');
     let pct = 0;
-    const timer = setInterval(() => {
-        pct += Math.random() * 18 + 4;
-        if (pct >= 100) { pct = 100; clearInterval(timer); }
-        progress.style.width = pct + '%';
-        if (pctLabel) pctLabel.textContent = Math.round(pct) + '%';
-        if (pct >= 100) setTimeout(() => splash?.classList.add('hidden'), 300);
-    }, 80);
+    
+    console.log("Splash check: ", splash ? "Found" : "Not Found");
+    
+    if (splash) {
+        const timer = setInterval(() => {
+            pct += Math.random() * 12 + 2; // Slightly slower
+            if (pct >= 100) { 
+                pct = 100; 
+                clearInterval(timer); 
+                console.log("Splash finished, hiding in 500ms...");
+                setTimeout(() => {
+                    splash.classList.add('splash-hidden');
+                }, 500); // 500ms fixed after finish
+            }
+            if (progress) progress.style.width = pct + '%';
+            if (pctLabel) pctLabel.textContent = Math.round(pct) + '%';
+        }, 100); // Slower interval
+    }
 
     // ══ CONTACT FORM → GMAIL ══
     document.getElementById('contact-form')?.addEventListener('submit', (e) => {
@@ -84,36 +95,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ══ INSTAGRAM INTEGRATION (via Behold.so) ══
-    const BEHOLD_URL = "https://feeds.behold.so/dDpAFVwfxIST9MZ9QQJm";
+    // ══ INSTAGRAM INTEGRATION (Local JSON) ══
     let allInstagramPosts = [];
 
     async function loadInstagramFeed() {
-        const DB_URL = "src/data/instagram_db.json";
+        const DB_URL = "src/data/instagram_final_filtrado.json";
 
         try {
-            // 1. Tentar carregar do banco de dados local (acumulado)
             const dbResponse = await fetch(DB_URL);
             if (dbResponse.ok) {
                 const dbData = await dbResponse.json();
                 if (dbData && dbData.length > 0) {
-                    allInstagramPosts = dbData.map(post => ({
-                        ...post,
-                        cat: categorizePost(post.caption || '')
-                    }));
-                    console.log(`✅ Carregadas ${allInstagramPosts.length} fotos do banco local.`);
-                    filterGallery('nature');
-                    return; // Se carregou do banco, já temos o que precisamos
+                    let flattenedPosts = [];
+                    let numericCounter = 1;
+                    
+                    // Iterate and flatten carousels
+                    dbData.forEach((post) => {
+                        const urls = Array.isArray(post.url) ? post.url : [post.url];
+                        urls.forEach((urlStr) => {
+                            flattenedPosts.push({
+                                ...post,
+                                url: urlStr,
+                                numericId: numericCounter++,
+                                // Normaliza para as duas categorias de forma robusta
+                                cat: (post.cat && post.cat.toLowerCase().includes('nature')) ? 'nature' : 'social'
+                            });
+                        });
+                    });
+
+                    // Global processing of posts
+                    allInstagramPosts = flattenedPosts.sort((a, b) => {
+                        return new Date(b.timestamp) - new Date(a.timestamp);
+                    });
+                    
+                    console.log(`✅ Carregadas ${allInstagramPosts.length} fotos do arquivo local (carrosséis individualizados). Ordenado por data.`);
+                    filterGallery('destaques'); // Carregar assim que o JSON abrir
+                    return;
                 }
             }
         } catch (e) {
-            console.warn("Aviso: Banco de dados local não encontrado ou vazio. Usando feed em tempo real.");
+            console.error("Erro ao carregar banco de dados local:", e);
         }
 
-        // 2. Fallback: Se o banco estiver vazio, usa o Behold (apenas as últimas 5)
-        if (!BEHOLD_URL) {
-            // (O array de fallback picsum que já existia...)
-            allInstagramPosts = [
+        // Fallback: Se o banco estiver vazio ou falhar
+        allInstagramPosts = [
                 // NATUREZA & VIDA SELVAGEM (10 fotos)
                 { id: 1, url: 'https://picsum.photos/seed/fern-green/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Mundo Micro: Fungo na Floresta Amazônica • Natureza', cat: 'nature' },
                 { id: 2, url: 'https://picsum.photos/seed/raindrop-leaf/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Detalhe da chuva sobre a flora local • Natureza', cat: 'nature' },
@@ -126,79 +151,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 { id: 9, url: 'https://picsum.photos/seed/frog-amazon/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Perereca verde amazônica • Natureza', cat: 'nature' },
                 { id: 10, url: 'https://picsum.photos/seed/lizard-stones/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Tejupã sobre pedras do Rio • Natureza', cat: 'nature' },
                 // URBANO (5 fotos)
-                { id: 11, url: 'https://picsum.photos/seed/bridge-maraba/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Ponte Ana Miranda • Marabá PA', cat: 'urban' },
-                { id: 12, url: 'https://picsum.photos/seed/city-night/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Marabá ao entardecer • Urbano', cat: 'urban' },
-                { id: 13, url: 'https://picsum.photos/seed/arch-facade/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Geometria da fachada histórica • Urbano', cat: 'urban' },
-                { id: 14, url: 'https://picsum.photos/seed/street-rain/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Rua sob chuva tropical • Urbano', cat: 'urban' },
-                { id: 15, url: 'https://picsum.photos/seed/skyline-pa/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Skyline do Tocantins • Urbano', cat: 'urban' },
+                { id: 11, url: 'https://picsum.photos/seed/bridge-maraba/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Ponte Ana Miranda • Marabá PA', cat: 'social' },
+                { id: 12, url: 'https://picsum.photos/seed/city-night/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Marabá ao entardecer • Urbano', cat: 'social' },
+                { id: 13, url: 'https://picsum.photos/seed/arch-facade/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Geometria da fachada histórica • Urbano', cat: 'social' },
+                { id: 14, url: 'https://picsum.photos/seed/street-rain/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Rua sob chuva tropical • Urbano', cat: 'social' },
+                { id: 15, url: 'https://picsum.photos/seed/skyline-pa/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Skyline do Tocantins • Urbano', cat: 'social' },
                 // SOCIAL (5 fotos)
                 { id: 16, url: 'https://picsum.photos/seed/event-photo/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Evento técnico de fotografia • Social', cat: 'social' },
                 { id: 17, url: 'https://picsum.photos/seed/portrait-doc/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Retrato documental • Social', cat: 'social' },
                 { id: 18, url: 'https://picsum.photos/seed/collab-work/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Parceria projeto cultural • Social', cat: 'social' },
                 { id: 19, url: 'https://picsum.photos/seed/community-jn/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Workshop fotógrafos do Pará • Social', cat: 'social' },
                 { id: 20, url: 'https://picsum.photos/seed/festival-art/800/1000', permalink: 'https://www.instagram.com/jordaonunes/', caption: 'Festival cultural de Marabá • Social', cat: 'social' },
-            ];
-            filterGallery('nature');
-            return;
-        }
-
-        try {
-            const response = await fetch(BEHOLD_URL);
-            const data = await response.json();
-
-            // Behold returns an object with 'posts' or just an array directly depending on config
-            const posts = Array.isArray(data) ? data : data.posts;
-
-            allInstagramPosts = posts.map(item => ({
-                id: item.id,
-                url: item.sizes?.large?.mediaUrl || item.mediaUrl,
-                permalink: item.permalink,
-                caption: item.caption || '',
-                cat: categorizePost(item.caption || '')
-            }));
-
-            filterGallery('nature');
-        } catch (error) {
-            console.error('Erro ao carregar feed do Behold:', error);
-            filterGallery('nature');
-        }
+        ];
+        filterGallery('destaques'); // Carregar também para o fallback
     }
 
-    function categorizePost(caption) {
-        const text = caption.toLowerCase();
-
-        // 1. Social, Cultural e Religioso
-        if (text.includes('cirio') || text.includes('nazaré') || text.includes('festa') ||
-            text.includes('social') || text.includes('evento') || text.includes('projeto') ||
-            text.includes('fé') || text.includes('documental') || text.includes('branding')) return 'social';
-
-        // 2. Urbano e Arquitetura
-        if (text.includes('cidade') || text.includes('maraba') || text.includes('ponte') ||
-            text.includes('urbano') || text.includes('rua') || text.includes('arquitetura')) return 'urban';
-
-        // 3. Natureza & Vida Selvagem (Fundidos)
-        if (text.includes('nature') || text.includes('natureza') || text.includes('flora') ||
-            text.includes('fungo') || text.includes('cogumelo') || text.includes('rio') ||
-            text.includes('ave') || text.includes('passaro') || text.includes('animal') ||
-            text.includes('fauna') || text.includes('wildlife')) return 'nature';
-
-        return 'nature';
-    }
+    // Categoria agora vem direto do JSON (Processado via Scraper/Alt-Text)
 
     function filterGallery(category) {
         const galleryGrid = document.getElementById('home-gallery-grid');
+        const galleryHeader = document.getElementById('gallery-header');
         if (!galleryGrid) return;
         galleryGrid.innerHTML = '';
 
-        const filtered = (category === 'logo' || !category || category === 'nav-home')
-            ? allInstagramPosts
-            : allInstagramPosts.filter(p => p.cat === category);
+        if (galleryHeader) {
+            galleryHeader.style.display = (category === 'destaques' || category === 'logo' || category === 'nav-home') ? 'block' : 'none';
+        }
+
+        let filtered;
+        if (category === 'destaques' || category === 'logo' || category === 'nav-home' || !category) {
+            // Mostra 12 posts aleatórios para garantir variedade de estilos
+            filtered = [...allInstagramPosts]
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 12);
+        } else {
+            filtered = allInstagramPosts.filter(p => p.cat === category);
+        }
 
         filtered.forEach((post, i) => {
             const item = document.createElement('div');
             item.className = 'gal-item';
             item.setAttribute('data-reveal', '');
             item.style.cursor = 'pointer';
+
             item.innerHTML = `
                 <img src="${post.url}" alt="${post.caption}" loading="lazy">
                 <div class="gal-overlay">
@@ -218,13 +213,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!grid) return;
         if (grid.children.length > 0) return;
 
-        const ordered = [...allInstagramPosts].sort((a, b) => b.id - a.id);
+        // Já estão ordenados globalmente no loadInstagramFeed, mas garantimos aqui também.
+        const ordered = [...allInstagramPosts].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
         ordered.forEach((post, i) => {
             const item = document.createElement('div');
             item.className = 'gal-item';
             item.setAttribute('data-reveal', '');
             item.style.cursor = 'pointer';
+
             item.innerHTML = `
                 <img src="${post.url}" alt="${post.caption}" loading="lazy">
                 <div class="gal-overlay">
@@ -258,13 +255,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function openLightbox(post, posts, index) {
         lbPosts = posts;
         lbIndex = index;
+        updateLightboxContent();
+        lightbox.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function updateLightboxContent() {
+        const post = lbPosts[lbIndex];
+        
         lbImg.src = post.url;
         lbImg.alt = post.caption;
         lbCat.textContent = post.cat.toUpperCase();
         lbCaption.textContent = post.caption;
         lbLink.href = post.permalink;
-        lightbox.classList.add('open');
-        document.body.style.overflow = 'hidden';
     }
 
     function closeLightbox() {
@@ -275,12 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function lbNavigate(dir) {
         lbIndex = (lbIndex + dir + lbPosts.length) % lbPosts.length;
-        const p = lbPosts[lbIndex];
-        lbImg.src = p.url;
-        lbImg.alt = p.caption;
-        lbCat.textContent = p.cat.toUpperCase();
-        lbCaption.textContent = p.caption;
-        lbLink.href = p.permalink;
+        updateLightboxContent();
     }
 
     document.getElementById('lb-close').addEventListener('click', closeLightbox);
@@ -304,17 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Fechar menu ao clicar num link mobile
-    // ══ FILTROS DA GALERIA ══
-    document.querySelectorAll('.gal-filter').forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Remove active de todos
-            document.querySelectorAll('.gal-filter').forEach(b => b.classList.remove('active'));
-            // Adiciona no clicado
-            btn.classList.add('active');
-            // Filtra
-            filterGallery(btn.id);
-        });
-    });
     mobileOverlay?.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', () => {
             hamburger.classList.remove('open');
@@ -335,7 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (id === 'logo' || id === 'nav-home') {
             switchPage('home');
-            filterGallery('logo');
+            document.querySelectorAll('.gal-filter').forEach(f => f.classList.remove('active'));
+            filterGallery('destaques');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.getElementById('nav-home')?.classList.add('active');
         } else if (id === 'nav-portfolio') {

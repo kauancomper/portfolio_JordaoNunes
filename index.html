@@ -62,8 +62,8 @@
     <!-- Navegação Semântica -->
     <header>
         <nav class="nav">
-            <div class="nav-logo" id="logo">
-                <div class="nav-logo-dot"></div>
+            <div class="nav-logo" id="logo" style="display: flex; align-items: center; gap: 4px;">
+                <img src="src/assets/img/logo%20jn.png" alt="Logo JN" style="height: 56px; width: auto;">
                 JORDÃO NUNES
             </div>
             <div class="nav-links" id="nav-menu">
@@ -134,24 +134,28 @@
                 <div class="iso-container" data-reveal>
                     <!-- RECOMENDAÇÃO: Salve a imagem 'JN 3D' do chat como: src/assets/img/jn-3d.png -->
                     <img src="https://images.unsplash.com/photo-1634507000790-a35f52479e0a?q=80&w=2670&auto=format&fit=crop"
-                        id="jn-3d-img"
+                        id="video.mp4"
                         style="width: 100%; border-radius: 12px; box-shadow: 0 40px 100px rgba(139, 63, 255, 0.2);"
                         alt="JN 3D isometric studio">
                 </div>
             </div>
 
             <!-- CATEGORIES FILTER -->
-            <div class="section" style="padding-top: 40px; text-align: center;">
+            <div class="section" style="padding: 40px 48px 20px; text-align: center;">
                 <div class="nav-links"
-                    style="display: inline-flex; justify-content: center; background: rgba(255,255,255,0.03); padding: 10px 30px; border-radius: 40px; border: 1px solid var(--line);">
-                    <span class="nav-link active gal-filter" id="nature">Natureza</span>
-                    <span class="nav-link gal-filter" id="urban">Urbano</span>
-                    <span class="nav-link gal-filter" id="social">Social</span>
+                    style="display: inline-flex; justify-content: center; background: rgba(255,255,255,0.05); padding: 14px 40px; border-radius: 40px; border: 1px solid var(--line); gap: 40px;">
+                    <span class="nav-link gal-filter" id="nature" style="font-size: 13px;">Natureza</span>
+                    <span class="nav-link gal-filter" id="social" style="font-size: 13px;">Social</span>
                 </div>
             </div>
 
             <!-- GALERIA REFINADA -->
-            <div class="section">
+            <div class="section" style="padding-top: 0;">
+                <div id="gallery-header" style="text-align: center; margin-bottom: 40px; display: none;">
+                    <h2
+                        style="font-family: var(--display); font-size: 2rem; color: var(--purple); letter-spacing: 0.1em;">
+                        DESTAQUES</h2>
+                </div>
                 <div class="gallery-grid" id="home-gallery-grid"></div>
             </div>
         </section>
@@ -255,14 +259,14 @@
                                     style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 12px; padding: 20px;">
                                     <h4
                                         style="color: var(--purple); margin-bottom: 6px; font-size: 0.7rem; letter-spacing: 0.2em;">
-                                        SPECIALTY</h4>
-                                    <span style="font-size: 1rem; font-family: var(--serif);">Wildlife & Macro</span>
+                                        ESPECIALIDADE</h4>
+                                    <span style="font-size: 1rem; font-family: var(--serif);">Wildlife & Urban</span>
                                 </div>
                                 <div
                                     style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 12px; padding: 20px;">
                                     <h4
                                         style="color: var(--purple); margin-bottom: 6px; font-size: 0.7rem; letter-spacing: 0.2em;">
-                                        BASE</h4>
+                                        ORIGEM</h4>
                                     <span style="font-size: 1rem; font-family: var(--serif);">Marabá, PA</span>
                                 </div>
                             </div>
