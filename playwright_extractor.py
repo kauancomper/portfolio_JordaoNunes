@@ -177,9 +177,17 @@ async def extrair_instagram_dom(username):
                     await page.click('button[type="submit"]')
                     
                     # Espera o login concluir ou pedir 2FA
-                    await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=30000)
-                    print("Login realizado com sucesso!")
-                    await context.storage_state(path=session_file)
+                    try:
+                        await page.wait_for_selector('svg[aria-label="Página inicial"], svg[aria-label="Home"], a[href="/"]', timeout=30000)
+                        print("Login realizado com sucesso!")
+                        await context.storage_state(path=session_file)
+                    except:
+                        # Fallback: verifica se a URL mudou para algo que não seja login
+                        if "/accounts/login/" not in page.url:
+                            print("Login parece ter tido sucesso (redirecionado).")
+                            await context.storage_state(path=session_file)
+                        else:
+                            raise Exception("Não foi possível confirmar o login com sucesso.")
                 except Exception as e:
                     print(f"❌ Falha no login automático: {e}")
                     print(f"URL final da falha: {page.url}")
@@ -297,38 +305,48 @@ async def extrair_instagram_dom(username):
                 urls = []
                 alt_texts = []
                 try:
-                    # Encontra o botão de próximo
-                    next_button_selector = 'role=dialog >> button[aria-label="Avançar"]'
+                    # Seletores robustos para o botão de avançar (Aria-label, Classes comuns, SVG)
+                    next_button_selectors = [
+                        'role=dialog >> button[aria-label="Avançar"]',
+                        'role=dialog >> button[aria-label="Next"]',
+                        'role=dialog >> ._af98 ._af9b', # Classes comuns do botão next
+                        'role=dialog >> button:has(svg[aria-label="Avançar"])',
+                        'role=dialog >> button:has(svg[aria-label="Next"])'
+                    ]
                     
-                    while True:
+                    max_slides = 10 # Limite de segurança
+                    for _ in range(max_slides):
                         # Extrai as URLs das imagens visíveis na tela no momento
+                        # No carrossel, as imagens podem estar em <ul> <li> ou divs
                         imgs = await page.query_selector_all('role=dialog >> img')
                         for img in imgs:
                             src = await img.get_attribute('src')
                             alt = await img.get_attribute('alt') or ""
-                            style = await img.get_attribute('style') or ""
                             
-                            if not src: continue
+                            if not src or "https://static.cdninstagram.com" in src: continue
                             
-                            # Filtro: A foto principal do post no Insta obrigatoriamente tem "srcset" ou "object-fit: cover"
-                            eh_imagem_principal =  ("object-fit" in style) or ("1080x1080" in src)
-                            
-                            if eh_imagem_principal:
-                                if src not in urls:
-                                    urls.append(src)
-                                if alt and alt not in alt_texts:
-                                    alt_texts.append(alt)
+                            # Em carrossel, relaxamos o filtro de style pois o Insta troca as classes durante a transição
+                            # Se está no modal e é uma imagem grande (não ícone), nós queremos.
+                            if src not in urls:
+                                urls.append(src)
+                            if alt and alt not in alt_texts:
+                                alt_texts.append(alt)
                         
-                        # Tenta clicar no próximo do carrossel
-                        try:
-                            next_btn = await page.query_selector(next_button_selector)
-                            if next_btn:
-                                await next_btn.click(timeout=3000)
-                                await page.wait_for_timeout(1000) 
-                            else:
-                                break
-                        except:
-                            break
+                        # Tenta clicar no próximo usando a lista de seletores
+                        clicou = False
+                        for selector in next_button_selectors:
+                            try:
+                                next_btn = await page.query_selector(selector)
+                                if next_btn and await next_btn.is_visible():
+                                    await next_btn.click(timeout=2000)
+                                    await page.wait_for_timeout(1000) # Espera a animação do slide
+                                    clicou = True
+                                    break
+                            except:
+                                continue
+                        
+                        if not clicou:
+                            break # Fim do carrossel
                             
                 except Exception as e:
                     print(f"Aviso ao extrair carrossel.")
