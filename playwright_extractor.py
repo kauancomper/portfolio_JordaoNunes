@@ -144,7 +144,6 @@ async def extrair_instagram_dom(username):
                     btn = await page.get_by_role("button", name=btn_text).first
                     if await btn.is_visible():
                         await btn.click()
-                        print(f"Botão de cookies '{btn_text}' clicado.")
                         await page.wait_for_timeout(2000)
             except:
                 pass
@@ -406,7 +405,7 @@ async def extrair_instagram_dom(username):
                     "cat": categoria,
                     "timestamp": data_iso
                 })
-                print(f"[SALVO] {categoria.upper()} - {shortcode}. [{len(postagens)}/{LIMITE_MAX_POSTS}]")
+                print(f"[POST] {len(postagens)}/{LIMITE_MAX_POSTS} | {categoria.upper()} - {shortcode}")
 
                 if len(postagens) >= LIMITE_MAX_POSTS:
                     print(f"\n[SUCESSO] ALVOS ATINGIDOS: {LIMITE_MAX_POSTS} publicações coletadas!")
