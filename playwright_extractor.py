@@ -12,7 +12,7 @@ except ImportError:
 
 # Configurações de Filtro e Automação
 ANOS_LIMITE = 3
-LIMITE_MAX_POSTS = 25
+LIMITE_MAX_POSTS = 30
 INTERVALO_MINUTOS = 60 # Tempo de espera entre verificações
 HEADLESS = True 
 # Credenciais via Variáveis de Ambiente (Configure no Easypanel)
