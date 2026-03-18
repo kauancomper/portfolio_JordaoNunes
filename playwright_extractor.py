@@ -128,15 +128,29 @@ async def extrair_instagram_dom(username):
             except Exception as e:
                 print(f"Aviso: Falha ao ativar modo Stealth: {e}")
         
-        print("Acessando Instagram...")
-        await page.goto("https://www.instagram.com/", wait_until="domcontentloaded", timeout=60000)
+        print("Acessando página de login do Instagram...")
+        await page.goto("https://www.instagram.com/accounts/login/", wait_until="domcontentloaded", timeout=60000)
         
         # 1. TENTA LOGIN POR SESSÃO OU POR CREDENCIAIS
         try:
+            # Verifica se já está logado (redirecionado para home)
             await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=7000)
             print("Sessão ativa confirmada!")
         except:
             print("Sessão expirada ou inexistente. Tentando login automático...")
+            
+            # Tenta fechar avisos de cookies se aparecerem
+            try:
+                cookie_buttons = ["Permitir todos os cookies", "Allow all cookies", "Somente cookies necessários", "Only allow essential cookies"]
+                for btn_text in cookie_buttons:
+                    btn = await page.get_by_role("button", name=btn_text).first
+                    if await btn.is_visible():
+                        await btn.click()
+                        print(f"Botão de cookies '{btn_text}' clicado.")
+                        await page.wait_for_timeout(2000)
+            except:
+                pass
+
             if not INSTA_PASS:
                 print("⚠️ ERRO: Senha não configurada (INSTA_PASS). O login manual será necessário.")
                 await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=300000)
@@ -144,7 +158,8 @@ async def extrair_instagram_dom(username):
                 # Lógica de Login Humano
                 try:
                     print(f"URL atual antes do seletor: {page.url}")
-                    await page.wait_for_selector('input[name="username"]', timeout=30000)
+                    # Às vezes o seletor demora por causa de banners
+                    await page.wait_for_selector('input[name="username"]', timeout=45000)
                     
                     # Simula digitação humana
                     async def type_human(selector, text):
