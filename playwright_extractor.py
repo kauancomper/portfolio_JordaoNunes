@@ -6,12 +6,9 @@ import random
 from datetime import datetime, timezone
 from playwright.async_api import async_playwright
 try:
-    from playwright_stealth import stealth_async as stealth_func
+    import playwright_stealth
 except ImportError:
-    try:
-        from playwright_stealth import stealth as stealth_func
-    except ImportError:
-        stealth_func = None
+    playwright_stealth = None
 
 # Configurações de Filtro e Automação
 ANOS_LIMITE = 3
@@ -109,13 +106,25 @@ async def extrair_instagram_dom(username):
             )
 
         page = await context.new_page()
-        if stealth_func:
+        if playwright_stealth:
             try:
-                if hasattr(stealth_func, 'stealth'):
-                    await stealth_func.stealth(page)
+                # Tenta todas as variações possíveis de nomes de funções na biblioteca
+                for func_name in ['stealth_async', 'stealth', 'stealth_sync']:
+                    func = getattr(playwright_stealth, func_name, None)
+                    if func and callable(func):
+                        # Se a função for async, usamos await, senão chamamos direto
+                        if asyncio.iscoroutinefunction(func):
+                            await func(page)
+                        else:
+                            func(page)
+                        print(f"Modo Stealth ativado (usando {func_name}).")
+                        break
                 else:
-                    await stealth_func(page)
-                print("Modo Stealth ativado.")
+                    # Se não achou no nível principal, tenta no sub-módulo .stealth
+                    sub_stealth = getattr(playwright_stealth, 'stealth', None)
+                    if sub_stealth and hasattr(sub_stealth, 'stealth'):
+                        sub_stealth.stealth(page)
+                        print("Modo Stealth ativado (via sub-módulo).")
             except Exception as e:
                 print(f"Aviso: Falha ao ativar modo Stealth: {e}")
         
