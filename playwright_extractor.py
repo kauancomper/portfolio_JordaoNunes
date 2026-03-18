@@ -66,26 +66,26 @@ def categorizar_e_filtrar(caption, alt_texts):
     texto_legenda = caption.lower()
     texto_total = f"{texto_imagens} {texto_legenda}"
     
-    # 1. Verifica Detecção Automática de Pessoas no Alt-Text (Acessibilidade do Insta)
+    # 1. Verifica Detecção Automática de Pessoas no Alt-Text (Foco em Selfies/Retratos)
+    # Apenas descarta se for EXPLICITAMENTE uma pessoa isolada ou rosto em close
     if detecta_pessoas_alt(alt_texts):
-        return None
+        # Mas se tiver palavras de natureza, pode ser alguém na floresta (aceitável)
+        tem_natureza = any(k in texto_total for k in NATURE_KEYWORDS)
+        if not tem_natureza:
+            return None
 
     # 2. Verifica Blacklist Manual na Legenda
     for word in BLACKLIST:
-        if word in texto_total:
+        if word in texto_legenda: # Foca na legenda para o descarte manual
             return None
-            
-    # 2. Verifica Natureza
-    for k in NATURE_KEYWORDS:
-        if k in texto_total:
-            return "nature"
             
     # 3. Verifica Social (Cultura/Urbano)
     for k in SOCIAL_KEYWORDS:
         if k in texto_total:
             return "social"
             
-    return None # Descarta se não se encaixar em nada profissional
+    # 4. Default: Se não foi descartado, assume Natureza (Foco do Perfil)
+    return "nature"
 
 def passa_no_filtro(caption, alt_texts):
     return categorizar_e_filtrar(caption, alt_texts) is not None
@@ -314,23 +314,17 @@ async def extrair_instagram_dom(username):
                     await page.keyboard.press("Escape")
                     continue
 
-                # Pega a legenda de forma ASSERTIVA (O primeiro <li> dentro do <ul> lateral)
-                caption = ""
-                try:
-                    # O Instagram coloca a legenda no primeiro item de uma lista <ul>
-                    # O seletor abaixo mira no texto do autor ignorando o nome de usuário se possível
-                    caption_container = await page.query_selector('role=dialog >> article ul span._ap3a, role=dialog >> article ul span')
+                    # Tentativa 1: Mira no span da legenda dentro do primeiro li e ul
+                    # Seletores comuns: ._ap3a, ._a9zs, span._aclb
+                    caption_container = await page.query_selector('role=dialog >> ul li span._a9zs, role=dialog >> ul li h1 ~ span')
                     if caption_container:
                         caption = await caption_container.inner_text()
                     
                     if not caption:
-                        # Fallback seguro se o seletor acima falhar
-                        h1_elem = await page.query_selector('role=dialog >> h1')
-                        if h1_elem:
-                            # A legenda muitas vezes é o vizinho do H1 que contém o nome do usuário
-                            parent = await h1_elem.query_selector('xpath=..')
-                            if parent:
-                                caption = await parent.inner_text()
+                        # Tentativa 2: Fallback para qualquer span dentro do primeiro li
+                        caption_container = await page.query_selector('role=dialog >> article ul li span')
+                        if caption_container:
+                            caption = await caption_container.inner_text()
                 except:
                     pass
                 
