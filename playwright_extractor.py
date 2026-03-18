@@ -363,6 +363,7 @@ async def extrair_instagram_dom(username):
         await browser.close()
         
         filename = "src/data/instagram_final_filtrado.json"
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(postagens, f, indent=4, ensure_ascii=False)
             
