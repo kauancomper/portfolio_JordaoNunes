@@ -20,57 +20,57 @@ INSTA_USER = os.getenv("INSTA_USER", "jordaonunes")
 INSTA_PASS = os.getenv("INSTA_PASS", "")
 PROXY_SERVER = os.getenv("PROXY_SERVER", "") # Ex: http://user:pass@host:port
 
-# Palavras-chave por Categoria (Refinado para Eventos Sociais)
-CAT_KEYWORDS = {
-    "nature": [
-        "natureza", "pássaro", "animal", "flor", "fauna", "flora", "wildlife", "inseto", "réptil", # Específicos
-        "rio", "amazônia", "paisagem", "parque", "árvore", "floresta", "mata", "céu", "nuvem", "pôr do sol", "nascer do sol" # Gerais
-    ],
-    "social": [
-        "círio", "nazare", "festejo", "junino", "junina", "quadrilha", "expoama", "exposição", "festa", "evento", "casamento", "aniversário", "workshop", # Eventos FORTES
-        "povo", "pessoa", "sociedade", "tradição", "cultura", "gente", "comunidade", "público", # Sociedade
-        "urbano", "cidade", "ponte", "praça", "rua", "prédio", "arquitetura", "skyline", "marabá", "avenida", "centro", "histórico" # Urbano/Cidade
-    ]
-}
+# Configuração de Filtros Profissionais (Natureza, Urbano, Animais e Cultura)
+NATURE_KEYWORDS = [
+    "natureza", "pássaro", "animal", "flor", "fauna", "flora", "wildlife", "inseto", "réptil", 
+    "rio", "amazônia", "paisagem", "parque", "árvore", "floresta", "mata", "céu", "nuvem", 
+    "pôr do sol", "nascer do sol", "amazônico", "amazônica", "macaco", "onça", "jacaré", "cobra",
+    "peixe", "bicho", "flutuante", "água", "selva", "bioma"
+]
 
-# Subconjunto de palavras que definem SOCIAL independente de ter natureza no fundo
-SOCIAL_STRONG = ["círio", "nazare", "festejo", "junino", "junina", "quadrilha", "expoama", "exposição", "festa", "evento"]
+SOCIAL_KEYWORDS = [
+    # Cultura e Eventos (O que o usuário quer manter)
+    "círio", "nazare", "festejo", "junino", "junina", "quadrilha", "expoama", "exposição", "cultura", "tradição",
+    "evento", "festa", "povo", "gente", "comunidade", "público", "manifestação", "religioso", "fé", "paraense",
+    # Urbano e Arquitetura
+    "urbano", "cidade", "ponte", "praça", "rua", "prédio", "arquitetura", "marabá", "avenida", "histórico",
+    "skyline", "construção", "centro", "estrada", "beira-rio"
+]
 
-def categorizar_post(caption, alt_texts):
+# Blacklist: Termos que indicam fotos de perfil/pessoais (O que o usuário quer REMOVER)
+BLACKLIST = [
+    "selfie", "rosto", "look", "moda", "estilo", "promoção", "sorteio", "maquiagem",
+    "lookdodia", "ensaio pessoal", "minha foto", "eu no", "close de rosto"
+]
+
+def categorizar_e_filtrar(caption, alt_texts):
     texto_imagens = " ".join(alt_texts).lower()
     texto_legenda = caption.lower()
     texto_total = f"{texto_imagens} {texto_legenda}"
     
-    # 1. PRIORIDADE MÁXIMA: Se for um evento social conhecido (Mesmo que tenha rio/natureza)
-    for k in SOCIAL_STRONG:
-        if k in texto_total: return "social"
-
-    # 2. SEGUNDA PRIORIDADE: Natureza Específica (Animais, Pássaros, etc no Alt-Text)
-    especificos_nature = ["pássaro", "animal", "flor", "fauna", "flora", "wildlife", "inseto", "réptil"]
-    for k in especificos_nature:
-        if k in texto_imagens: return "nature"
-
-    # 3. Terceira Prioridade: Outros termos de Natureza (Geral)
-    for k in CAT_KEYWORDS["nature"]:
-        if k in texto_imagens: return "nature"
-
-    # 4. Fallback para Social geral
-    for k in CAT_KEYWORDS["social"]:
-        if k in texto_imagens: return "social"
-
-    # 5. Fallback para legenda (mesma ordem)
-    for k in CAT_KEYWORDS["nature"]:
-        if k in texto_legenda: return "nature"
-    for k in CAT_KEYWORDS["social"]:
-        if k in texto_legenda: return "social"
-        
-    return "social" # Default para os que sobrarem como urbano/social
+    # 1. Verifica Blacklist (Prioridade máxima de descarte)
+    for word in BLACKLIST:
+        if word in texto_total:
+            return None
+            
+    # 2. Verifica Natureza
+    for k in NATURE_KEYWORDS:
+        if k in texto_total:
+            return "nature"
+            
+    # 3. Verifica Social (Cultura/Urbano)
+    for k in SOCIAL_KEYWORDS:
+        if k in texto_total:
+            return "social"
+            
+    return None # Descarta se não se encaixar em nada profissional
 
 def passa_no_filtro(caption, alt_texts):
-    # Aceita quase tudo que tenha as palavras chave, mas agora o foco é a classificação correta
-    texto = (caption + " " + " ".join(alt_texts)).lower()
-    all_keywords = [item for sublist in CAT_KEYWORDS.values() for item in sublist]
-    return any(k in texto for k in all_keywords)
+    return categorizar_e_filtrar(caption, alt_texts) is not None
+
+def categorizar_post(caption, alt_texts):
+    res = categorizar_e_filtrar(caption, alt_texts)
+    return res if res else "nature"
 
 async def extrair_instagram_dom(username):
     print(f"Iniciando raspagem focada nas {LIMITE_MAX_POSTS} publicações (Versão v2 - Carrossel Fix)...")
