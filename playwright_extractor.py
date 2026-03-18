@@ -73,8 +73,7 @@ def categorizar_post(caption, alt_texts):
     return res if res else "nature"
 
 async def extrair_instagram_dom(username):
-    print(f"Iniciando raspagem focada nas {LIMITE_MAX_POSTS} publicações (Versão v2 - Carrossel Fix)...")
-    print("Modo de Extração: Simulação Humana (Aberto o Modal) para evitar bloqueio de API.")
+    print(f"\n[INFO] Iniciando raspagem: @{username} (Alvo: {LIMITE_MAX_POSTS} posts)")
     
     async with async_playwright() as p:
         session_file = "instagram_session.json"
@@ -133,11 +132,10 @@ async def extrair_instagram_dom(username):
         
         # 1. TENTA LOGIN POR SESSÃO OU POR CREDENCIAIS
         try:
-            # Verifica se já está logado (redirecionado para home)
             await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=7000)
-            print("Sessão ativa confirmada!")
+            print("[LOGIN] Sessão ativa ok.")
         except:
-            print("Sessão expirada ou inexistente. Tentando login automático...")
+            print("[LOGIN] Tentando login automático...")
             
             # Tenta fechar avisos de cookies se aparecerem
             try:
@@ -189,8 +187,8 @@ async def extrair_instagram_dom(username):
                     
                     # Espera o login concluir ou pedir 2FA
                     try:
-                        await page.wait_for_selector('svg[aria-label="Página inicial"], svg[aria-label="Home"], a[href="/"]', timeout=30000)
-                        print("Login realizado com sucesso!")
+                        await page.wait_for_selector('svg[aria-label="Página inicial"], svg[aria-label="Home"], a[href="/"]', timeout=3000)
+                        print("[LOGIN] Sucesso!")
                         await context.storage_state(path=session_file)
                     except:
                         # Fallback: verifica se a URL mudou para algo que não seja login
@@ -208,7 +206,6 @@ async def extrair_instagram_dom(username):
                         print("Verifique se as credenciais estão corretas ou se a página mudou.")
                     await page.wait_for_timeout(30000)
 
-        print(f"\nAcessando perfil: @{username}")
         await page.goto(f"https://www.instagram.com/{username}/", timeout=60000)
         
         # Espera carregar a grid
@@ -249,8 +246,6 @@ async def extrair_instagram_dom(username):
                 
                 processados.add(shortcode)
                 novos = True
-                
-                print(f"\nInspecionando {shortcode}...")
 
                 # 1. Filtro Visual na Grid (Descartar Reels visualmente se possível)
                 svgs = await post.query_selector_all('svg')
@@ -261,7 +256,6 @@ async def extrair_instagram_dom(username):
                         is_video_grid = True
                 
                 if is_video_grid or '/reel/' in href:
-                    print("[Ignorado] É um Vídeo/Reel.")
                     continue
 
                 # 2. Clicar e abrir o Modal
@@ -296,7 +290,6 @@ async def extrair_instagram_dom(username):
                         break
                         
                 except Exception:
-                    print("[Erro] Falha ao extrair data")
                     await page.keyboard.press("Escape")
                     continue
 
@@ -345,8 +338,8 @@ async def extrair_instagram_dom(username):
                             if alt and alt not in alt_texts:
                                 alt_texts.append(alt)
                         
-                        if found_in_slide > 0:
-                            print(f"  -> Slide {i}: {found_in_slide} novas imagens. Total acumulado: {len(urls)}")
+                        # if found_in_slide > 0:
+                        #     print(f"  -> Slide {i}: {found_in_slide} novas imagens. Total acumulado: {len(urls)}")
                         
                         # Tenta clicar no próximo usando a lista de seletores
                         clicou = False
@@ -432,7 +425,7 @@ async def extrair_instagram_dom(username):
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(postagens, f, indent=4, ensure_ascii=False)
             
-        print(f"\n[SUCESSO] Arquivo salvo em: {filename}")
+        print(f"[ARQUIVO] Salvo: {filename}")
 
 async def main():
     username = "jordaonunes"
@@ -448,10 +441,8 @@ async def main():
             proxima_execucao = datetime.now().timestamp() + (INTERVALO_MINUTOS * 60)
             proxima_formatada = datetime.fromtimestamp(proxima_execucao).strftime("%H:%M:%S")
             
-            print(f"\n{'='*50}")
-            print(f"✅ SUCESSO: Posts atualizados.")
-            print(f"⏳ Próxima verificação às: {proxima_formatada}")
-            print(f"{'='*50}\n")
+            proxima_formatada = datetime.fromtimestamp(proxima_execucao).strftime("%H:%M:%S")
+            print(f"[OK] Atualizado em {inicio}. Próximo: {proxima_formatada}")
             
             await asyncio.sleep(INTERVALO_MINUTOS * 60)
             
