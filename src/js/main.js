@@ -41,11 +41,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (success) { success.style.display = 'block'; }
     });
 
-    // ══ NAV SCROLL ══
+    // ══ NAV AND PARALLAX SCROLL ══
     const nav = document.querySelector('.nav');
+    const heroContent = document.querySelector('.hero-content');
+    const heroBg = document.querySelector('.hero-bg');
+    const heroGrand = document.querySelector('.hero-grand');
+    const isoContainer = document.querySelector('.iso-container');
+
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) nav.classList.add('scrolled');
+        const scrolled = window.scrollY;
+        
+        // Header Blur Nav
+        if (scrolled > 50) nav.classList.add('scrolled');
         else nav.classList.remove('scrolled');
+
+        // Hero Parallax (apenas enquanto a hero section estiver visível)
+        if (scrolled <= window.innerHeight) {
+            // Background Image move em uma velocidade
+            if (heroBg) heroBg.style.transform = `translateY(${scrolled * 0.4}px)`;
+            
+            // Container 3D Isometric / Container geral
+            if (isoContainer) isoContainer.style.transform = `translateY(${scrolled * -0.15}px)`;
+            if (heroContent) heroContent.style.transform = `translateY(${scrolled * 0.25}px)`;
+            
+            // Diminuição fluida da opacidade do título
+            if (heroGrand) {
+                const opacity = Math.max(0, 1 - (scrolled / 400));
+                heroGrand.style.opacity = opacity;
+                heroGrand.style.transform = `translateY(${scrolled * 0.1}px)`;
+            }
+        }
     });
 
 

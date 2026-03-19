@@ -456,3 +456,27 @@ body{background:var(--bg);color:var(--white);font-family:var(--body);overflow-x:
     opacity: 0.5;
     pointer-events: none;
 }
+
+/* ══ MOTION-DRIVEN PARALLAX (SMOOTH TRANSITIONS) ══ */
+.hero-bg, .hero-content, .iso-container {
+    will-change: transform, opacity;
+    transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hero-grand {
+    will-change: transform, opacity;
+    transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ══ ACESSIBILIDADE VISUAL (CURSOR FIX) ══ */
+button, 
+.gal-filter, 
+.gal-item, 
+.nav-link, 
+.nav-logo, 
+.nav-inquire,
+.exif-item,
+.contact-channel,
+#portfolio-grid .gal-item,
+#home-gallery-grid .gal-item {
+    cursor: pointer !important;
+}
