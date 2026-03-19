@@ -128,26 +128,26 @@ async def extrair_instagram_dom(username):
                 await browser.close()
                 return
 
-                try:
-                    # Se estiver na home mas não logado, clica em Entrar
-                    if "login" not in page.url:
-                        await page.goto("https://www.instagram.com/accounts/login/", wait_until="domcontentloaded")
-                    
-                    await page.wait_for_selector('input[name="username"]', timeout=30000)
-                    
-                    # Simula digitação humana
-                    async def type_human(selector, text):
-                        await page.click(selector)
-                        for char in text:
-                            await page.keyboard.press(char)
-                            await asyncio.sleep(random.uniform(0.1, 0.3))
+            try:
+                # Se estiver na home mas não logado, clica em Entrar
+                if "login" not in page.url:
+                    await page.goto("https://www.instagram.com/accounts/login/", wait_until="domcontentloaded")
+                
+                await page.wait_for_selector('input[name="username"]', timeout=30000)
+                
+                # Simula digitação humana
+                async def type_human(selector, text):
+                    await page.click(selector)
+                    for char in text:
+                        await page.keyboard.press(char)
+                        await asyncio.sleep(random.uniform(0.1, 0.3))
 
-                    await type_human('input[name="username"]', INSTA_USER)
-                    await asyncio.sleep(random.uniform(1, 2))
-                    await type_human('input[name="password"]', INSTA_PASS)
-                    await asyncio.sleep(random.uniform(1, 2))
-                    
-                    await page.click('button[type="submit"]')
+                await type_human('input[name="username"]', INSTA_USER)
+                await asyncio.sleep(random.uniform(1, 2))
+                await type_human('input[name="password"]', INSTA_PASS)
+                await asyncio.sleep(random.uniform(1, 2))
+                
+                await page.click('button[type="submit"]')
                 
                 # Espera carregar ou pular anúncios de "Salvar Login"
                 await page.wait_for_selector('svg[aria-label="Página inicial"], button:has-text("Agora não"), button:has-text("Not Now")', timeout=30000)
