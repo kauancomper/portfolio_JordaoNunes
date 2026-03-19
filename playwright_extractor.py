@@ -184,19 +184,22 @@ async def extrair_instagram_dom(username):
                             login_button = await page.get_by_role("link", name="Entrar").first
                             if await login_button.is_visible():
                                 await login_button.click()
-                                await page.wait_for_timeout(3000)
-                        except:
-                            pass
-
-                    # Às vezes o seletor demora por causa de banners ou carregamento lento
-                    await page.wait_for_selector('input[name="username"]', timeout=45000)
+                                await page.wait_for_timeou                    # Às vezes o seletor demora por causa de banners ou carregamento lento
+                    print("[LOGIN] Aguardando campos de entrada...")
+                    try:
+                        await page.wait_for_selector('input[name="username"]', timeout=30000)
+                    except:
+                        # Se não achou o input, tenta forçar a ida para a URL de login novamente
+                        print("[LOGIN] Timeout nos campos. Forçando redirecionamento...")
+                        await page.goto("https://www.instagram.com/accounts/login/", wait_until="networkidle")
+                        await page.wait_for_selector('input[name="username"]', timeout=30000)
                     
                     # Simula digitação humana
                     async def type_human(selector, text):
                         await page.click(selector)
                         for char in text:
-                            await page.keyboard.type(char, delay=random.randint(50, 200))
-                            await asyncio.sleep(random.uniform(0.05, 0.15))
+                            await page.keyboard.press(char)
+                            await asyncio.sleep(random.uniform(0.1, 0.3))
 
                     await type_human('input[name="username"]', INSTA_USER)
                     await asyncio.sleep(random.uniform(1, 2))
@@ -206,18 +209,28 @@ async def extrair_instagram_dom(username):
                     # Clica no botão de login
                     await page.click('button[type="submit"]')
                     
-                    # Espera o login concluir ou pedir 2FA
+                    # Espera o login concluir ou pedir 2FA/Salvar Info
                     try:
-                        await page.wait_for_selector('svg[aria-label="Página inicial"], svg[aria-label="Home"], a[href="/"]', timeout=3000)
-                        print("[LOGIN] Sucesso!")
+                        await page.wait_for_selector('svg[aria-label="Página inicial"], svg[aria-label="Home"], button:has-text("Agora não"), button:has-text("Not Now")', timeout=30000)
+                        print("[LOGIN] Redirecionado após submissão.")
+                        
+                        # Lida com "Salvar informações de login?"
+                        try:
+                            btn_not_now = await page.get_by_role("button", name=re.compile(r"Agora não|Not now", re.I)).first
+                            if await btn_not_now.is_visible():
+                                await btn_not_now.click()
+                                await page.wait_for_timeout(2000)
+                        except: pass
+                        
                         await context.storage_state(path=session_file)
+                        print("[LOGIN] Sucesso e Sessão Salva!")
                     except:
-                        # Fallback: verifica se a URL mudou para algo que não seja login
                         if "/accounts/login/" not in page.url:
-                            print("Login parece ter tido sucesso (redirecionado).")
+                            print("[LOGIN] Sucesso aparente (mudança de URL).")
                             await context.storage_state(path=session_file)
                         else:
-                            raise Exception("Não foi possível confirmar o login com sucesso.")
+                            raise Exception("Login travado na página de entrada.")
+                raise Exception("Não foi possível confirmar o login com sucesso.")
                 except Exception as e:
                     print(f"❌ Falha no login automático: {e}")
                     print(f"URL final da falha: {page.url}")
@@ -314,8 +327,10 @@ async def extrair_instagram_dom(username):
                     await page.keyboard.press("Escape")
                     continue
 
-                    # Tentativa 1: Mira no span da legenda dentro do primeiro li e ul
-                    # Seletores comuns: ._ap3a, ._a9zs, span._aclb
+                # Pega a legenda de forma ASSERTIVA
+                caption = ""
+                try:
+                    # Tentativa 1: Mira no span da legenda dentro do primeiro li
                     caption_container = await page.query_selector('role=dialog >> ul li span._a9zs, role=dialog >> ul li h1 ~ span')
                     if caption_container:
                         caption = await caption_container.inner_text()
@@ -325,8 +340,8 @@ async def extrair_instagram_dom(username):
                         caption_container = await page.query_selector('role=dialog >> article ul li span')
                         if caption_container:
                             caption = await caption_container.inner_text()
-                except:
-                    pass
+                except Exception as e:
+                    print(f"  [Aviso] Erro ao extrair legenda: {e}")
                 
                 # Limpeza simples da legenda para remover o nome do usuário se ele vier colado
                 caption = re.sub(f"^{username}\\s*", "", caption, flags=re.IGNORECASE).strip()
