@@ -286,6 +286,8 @@ async def extrair_perfil(username):
                             "timestamp": dt.strftime("%Y-%m-%dT%H:%M:%S+0000")
                         })
                         print(f"✅ {len(postagens)}/{LIMITE_MAX_POSTS} | {cat.upper()} | {code}")
+                    else:
+                        print(f"⚠️ Pulo no post {code}: Identificado como Selfie ou Fora do Tema")
 
                 except Exception as e:
                     print(f"⚠️ Pulo no post {code}: {e}")
