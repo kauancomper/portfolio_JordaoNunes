@@ -62,7 +62,7 @@ def categorizar_post(caption, alt_texts):
             return None
 
     for w in BLACKLIST:
-        if w in caption.lower(): return None
+        if w in txt_all: return None
             
     for k in SOCIAL_KEYWORDS:
         if k in txt_all: return "social"
@@ -251,11 +251,16 @@ async def extrair_perfil(username):
                         for img in imgs:
                             src = await img.get_attribute('src') or ""
                             alt = await img.get_attribute('alt') or ""
+                            srcset = await img.get_attribute('srcset')
                             
-                            # Ignora fotos de perfil
                             alt_l = alt.lower()
+                            # Só aceita imagens que possuem srcset (garantia de ser a foto principal do post) ou que sejam bem grandes
+                            if not srcset and "p1080x1080" not in src: continue
+                            
+                            # Ignora explicitamente avatares e tracking pixels
                             if "foto de perfil" in alt_l or "profile pic" in alt_l: continue
                             if "/s150x150/" in src or "/s44x44/" in src or "/s32x32/" in src or "/150x150/" in src: continue
+                            if "logging_page" in src or "tracking" in src: continue
                             
                             if src and "cdninstagram" in src and src not in urls:
                                 urls.append(src)
