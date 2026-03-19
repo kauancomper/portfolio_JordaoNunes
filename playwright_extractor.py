@@ -229,7 +229,7 @@ async def extrair_perfil(username):
                     await page.wait_for_timeout(3000) # Deixa renderizar a foto
 
                     # Pega Data
-                    time_el = await page.query_selector('role=dialog time')
+                    time_el = await page.query_selector('role=dialog >> time')
                     dt_str = await time_el.get_attribute('datetime')
                     dt = datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
                     
@@ -239,7 +239,7 @@ async def extrair_perfil(username):
                     # Pega Legenda Seguro
                     legenda = ""
                     try:
-                        spans = await page.query_selector_all('role=dialog article ul li span')
+                        spans = await page.query_selector_all('role=dialog >> article ul li span')
                         for s in spans:
                             txt = await s.inner_text()
                             if len(txt) > 10 and username not in txt: # Heurística para achar o texto principal
@@ -250,7 +250,7 @@ async def extrair_perfil(username):
                     # Pega Fotos Carrossel
                     urls, alts = [], []
                     for _ in range(10):
-                        imgs = await page.query_selector_all('role=dialog img')
+                        imgs = await page.query_selector_all('role=dialog >> img')
                         for img in imgs:
                             src = await img.get_attribute('src')
                             alt = await img.get_attribute('alt') or ""
