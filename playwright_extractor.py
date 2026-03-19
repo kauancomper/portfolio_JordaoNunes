@@ -239,12 +239,9 @@ async def extrair_perfil(username):
                     # Pega Legenda Seguro
                     legenda = ""
                     try:
-                        spans = await page.query_selector_all('role=dialog >> article ul li span')
-                        for s in spans:
-                            txt = await s.inner_text()
-                            if len(txt) > 10 and username not in txt: # Heurística para achar o texto principal
-                                legenda = txt
-                                break
+                        h1_el = await page.query_selector('role=dialog >> h1')
+                        if h1_el:
+                            legenda = await h1_el.inner_text()
                     except: pass
 
                     # Pega Fotos Carrossel
@@ -252,8 +249,14 @@ async def extrair_perfil(username):
                     for _ in range(10):
                         imgs = await page.query_selector_all('role=dialog >> img')
                         for img in imgs:
-                            src = await img.get_attribute('src')
+                            src = await img.get_attribute('src') or ""
                             alt = await img.get_attribute('alt') or ""
+                            
+                            # Ignora fotos de perfil
+                            alt_l = alt.lower()
+                            if "foto de perfil" in alt_l or "profile pic" in alt_l: continue
+                            if "/s150x150/" in src or "/s44x44/" in src or "/s32x32/" in src or "/150x150/" in src: continue
+                            
                             if src and "cdninstagram" in src and src not in urls:
                                 urls.append(src)
                                 if alt: alts.append(alt)
