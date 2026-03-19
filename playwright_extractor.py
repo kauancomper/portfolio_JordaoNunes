@@ -3,7 +3,7 @@ import asyncio
 import json
 import re
 import random
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from playwright.async_api import async_playwright
 
 try:
@@ -16,7 +16,7 @@ except ImportError:
 # =====================================================================
 ANOS_LIMITE = 3
 LIMITE_MAX_POSTS = 30
-INTERVALO_MINUTOS = 60
+INTERVALO_MINUTOS = 360 # (6 horas)
 HEADLESS = True 
 
 INSTA_USER = os.getenv("INSTA_USER", "jordaonunes")
@@ -312,6 +312,11 @@ async def main():
             print(f"⚡ INICIANDO CICLO: {datetime.now().strftime('%H:%M:%S')}")
             print(f"==========================================")
             await extrair_perfil("jordaonunes")
+            
+            proxima = datetime.now() + timedelta(minutes=INTERVALO_MINUTOS)
+            print(f"\n✅ Ciclo concluído com sucesso!")
+            print(f"⏳ Próxima varredura programada para: {proxima.strftime('%H:%M:%S do dia %d/%m')}\n")
+            
             await asyncio.sleep(INTERVALO_MINUTOS * 60)
         except Exception as e:
             print(f"🔥 ERRO CRÍTICO NO LOOP: {e}")
