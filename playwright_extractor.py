@@ -5,22 +5,24 @@ import re
 import random
 from datetime import datetime, timezone
 from playwright.async_api import async_playwright
+
 try:
     import playwright_stealth
 except ImportError:
     playwright_stealth = None
 
-# Configurações de Filtro e Automação
+# =====================================================================
+# CONFIGURAÇÕES GERAIS E FILTROS
+# =====================================================================
 ANOS_LIMITE = 3
 LIMITE_MAX_POSTS = 30
-INTERVALO_MINUTOS = 60 # Tempo de espera entre verificações
+INTERVALO_MINUTOS = 60
 HEADLESS = True 
-# Credenciais via Variáveis de Ambiente (Configure no Easypanel)
+
 INSTA_USER = os.getenv("INSTA_USER", "jordaonunes")
 INSTA_PASS = os.getenv("INSTA_PASS", "")
-PROXY_SERVER = os.getenv("PROXY_SERVER", "") # Ex: http://user:pass@host:port
+PROXY_SERVER = os.getenv("PROXY_SERVER", "")
 
-# Configuração de Filtros Profissionais (Natureza, Urbano, Animais e Cultura)
 NATURE_KEYWORDS = [
     "natureza", "pássaro", "animal", "flor", "fauna", "flora", "wildlife", "inseto", "réptil", 
     "rio", "amazônia", "paisagem", "parque", "árvore", "floresta", "mata", "céu", "nuvem", 
@@ -29,253 +31,280 @@ NATURE_KEYWORDS = [
 ]
 
 SOCIAL_KEYWORDS = [
-    # Cultura e Eventos
     "círio", "nazare", "festejo", "junino", "junina", "quadrilha", "expoama", "exposição", "cultura", "tradição",
     "evento", "festa", "povo", "gente", "comunidade", "público", "manifestação", "religioso", "fé", "paraense",
-    # Urbano e Arquitetura
     "urbano", "cidade", "ponte", "praça", "rua", "prédio", "arquitetura", "marabá", "avenida", "histórico",
     "skyline", "construção", "centro", "estrada", "beira-rio"
 ]
 
-# Blacklist: Termos que indicam fotos de perfil/pessoais (O que o usuário quer REMOVER)
 BLACKLIST = [
     "selfie", "rosto", "look", "moda", "estilo", "promoção", "sorteio", "maquiagem",
     "lookdodia", "ensaio pessoal", "minha foto", "eu no", "close de rosto", "retrato"
 ]
 
+# =====================================================================
+# LÓGICA DE FILTRAGEM
+# =====================================================================
 def detecta_pessoas_alt(alt_texts):
-    """Detecta se o Alt-Text do Instagram indica presença indesejada de pessoas/selfies."""
-    padroes_pessoa = [
-        r"imagem pode conter: (\d+) pesso", 
-        r"imagem pode conter: rosto",
-        r"pode ser uma imagem de (\d+) pesso",
-        r"pode ser uma imagem de rosto",
-        r"pessoa sorrindo",
-        r"selfie",
-        r"em pé",
-        r"sentado"
+    padroes = [
+        r"imagem pode conter: (\d+) pesso", r"imagem pode conter: rosto",
+        r"pode ser uma imagem de (\d+) pesso", r"pode ser uma imagem de rosto",
+        r"pessoa sorrindo", r"selfie", r"em pé", r"sentado"
     ]
-    texto_total = " ".join(alt_texts).lower()
-    for p in padroes_pessoa:
-        if re.search(p, texto_total):
-            return True
-    return False
-
-def categorizar_e_filtrar(caption, alt_texts):
-    texto_imagens = " ".join(alt_texts).lower()
-    texto_legenda = caption.lower()
-    texto_total = f"{texto_imagens} {texto_legenda}"
-    
-    # 1. Verifica Detecção Automática de Pessoas no Alt-Text
-    if detecta_pessoas_alt(alt_texts):
-        tem_natureza = any(k in texto_total for k in NATURE_KEYWORDS)
-        if not tem_natureza:
-            return None
-
-    # 2. Verifica Blacklist Manual na Legenda
-    for word in BLACKLIST:
-        if word in texto_legenda:
-            return None
-            
-    # 3. Verifica Social (Cultura/Urbano)
-    for k in SOCIAL_KEYWORDS:
-        if k in texto_total:
-            return "social"
-            
-    # 4. Default: Natureza
-    return "nature"
-
-def passa_no_filtro(caption, alt_texts):
-    return categorizar_e_filtrar(caption, alt_texts) is not None
+    txt = " ".join(alt_texts).lower()
+    return any(re.search(p, txt) for p in padroes)
 
 def categorizar_post(caption, alt_texts):
-    res = categorizar_e_filtrar(caption, alt_texts)
-    return res if res else "nature"
+    txt_all = f"{' '.join(alt_texts)} {caption}".lower()
+    
+    if detecta_pessoas_alt(alt_texts):
+        if not any(k in txt_all for k in NATURE_KEYWORDS):
+            return None
 
-async def extrair_instagram_dom(username):
-    print(f"\n[INFO] Iniciando raspagem: @{username} (Alvo: {LIMITE_MAX_POSTS} posts)")
+    for w in BLACKLIST:
+        if w in caption.lower(): return None
+            
+    for k in SOCIAL_KEYWORDS:
+        if k in txt_all: return "social"
+            
+    return "nature"
+
+# =====================================================================
+# CORE DO SCRAPER (VPS OPTIMIZED)
+# =====================================================================
+async def type_like_human(page, selector, text):
+    await page.click(selector)
+    await page.wait_for_timeout(random.randint(500, 1000))
+    for char in text:
+        await page.keyboard.press(char)
+        await asyncio.sleep(random.uniform(0.05, 0.2))
+    await page.wait_for_timeout(random.randint(500, 1000))
+
+async def efetuar_login_vps(page, context, session_file):
+    print("[LOGIN] Iniciando fluxo de login ultra-defensivo para VPS...")
+    
+    # Navega para a home devagar
+    await page.goto("https://www.instagram.com/", wait_until="domcontentloaded", timeout=60000)
+    await page.wait_for_timeout(3000)
+    
+    # Verifica se já está logado
+    if await page.query_selector('svg[aria-label="Página inicial"], svg[aria-label="Home"]'):
+        print("[LOGIN] Sessão já ativa na Home.")
+        return True
+
+    # Força ir para a página de contas
+    await page.goto("https://www.instagram.com/accounts/login/", wait_until="domcontentloaded", timeout=60000)
+    await page.wait_for_timeout(5000) # Espera renderização pesada do React
+    
+    # 1. Bypass de Cookies (EU/UK/VPS regions)
+    try:
+        btns = await page.query_selector_all('button')
+        for b in btns:
+            txt = await b.inner_text()
+            if "cookie" in txt.lower() or "permitir" in txt.lower() or "allow" in txt.lower():
+                await b.click(force=True)
+                await page.wait_for_timeout(2000)
+    except: pass
+
+    # 2. Busca o campo de usuário com seletores flexíveis
+    username_field = None
+    seletores_user = ['input[name="username"]', 'input[type="text"]', 'input[aria-label*="user"]']
+    
+    for sel in seletores_user:
+        try:
+            username_field = await page.wait_for_selector(sel, timeout=10000)
+            if username_field: break
+        except: continue
+        
+    if not username_field:
+        title = await page.title()
+        url = page.url
+        print(f"❌ [LOGIN ERRO FATA] Campo de usuário não apareceu! Site pode estar bloqueando a VPS.")
+        print(f"   -> URL Atual: {url}")
+        print(f"   -> Título da Página: {title}")
+        return False
+
+    print("[LOGIN] Inserindo credenciais como humano...")
+    await type_like_human(page, 'input[name="username"]', INSTA_USER)
+    
+    # Busca campo de senha
+    try:
+        await type_like_human(page, 'input[name="password"]', INSTA_PASS)
+        await page.keyboard.press("Enter")
+    except Exception as e:
+        print(f"❌ [LOGIN ERRO] Falha ao inserir senha: {e}")
+        return False
+
+    print("[LOGIN] Submetido. Aguardando resposta do Instagram...")
+    
+    # Espera até 40s pelo login devido a proxies lentos
+    for _ in range(8):
+        await page.wait_for_timeout(5000)
+        
+        # Lida com botões chatos que travam a tela
+        try:
+            ignore_btns = await page.query_selector_all('button')
+            for b in ignore_btns:
+                txt = (await b.inner_text()).lower()
+                if "agora não" in txt or "not now" in txt or "cancelar" in txt:
+                    await b.click(force=True)
+                    await page.wait_for_timeout(2000)
+        except: pass
+        
+        if await page.query_selector('svg[aria-label="Página inicial"], svg[aria-label="Home"]'):
+            await context.storage_state(path=session_file)
+            print("[LOGIN] Sucesso Absoluto! Sessão guardada.")
+            return True
+            
+        if "challenge" in page.url or "checkpoint" in page.url:
+            print("🚨 [BLOQUEIO] Instagram exigiu verificação de segurança (Captcha/SMS). A VPS foi flaggada.")
+            return False
+
+    print("⚠️ [LOGIN] Timeout. O login pode ter falhado ou a rede está extremamente lenta.")
+    return False
+
+async def extrair_perfil(username):
+    print(f"\n[INFO] Iniciando raspagem do zero: @{username}")
     
     async with async_playwright() as p:
-        session_file = "instagram_session.json"
-        browser_args = ["--disable-blink-features=AutomationControlled"]
-        proxy_config = {"server": PROXY_SERVER} if PROXY_SERVER else None
+        args = ["--disable-blink-features=AutomationControlled", "--window-size=1920,1080"]
+        proxy = {"server": PROXY_SERVER} if PROXY_SERVER else None
         
-        browser = await p.chromium.launch(headless=HEADLESS, args=browser_args, proxy=proxy_config)
+        browser = await p.chromium.launch(headless=HEADLESS, args=args, proxy=proxy)
+        session_file = "instagram_session.json"
         
         if os.path.exists(session_file):
-            context = await browser.new_context(storage_state=session_file, proxy=proxy_config)
+            context = await browser.new_context(storage_state=session_file, proxy=proxy, viewport={'width': 1920, 'height': 1080})
         else:
-            context = await browser.new_context(proxy=proxy_config)
+            context = await browser.new_context(proxy=proxy, viewport={'width': 1920, 'height': 1080})
 
         page = await context.new_page()
         if playwright_stealth:
             try:
                 from playwright_stealth import stealth
                 await stealth(page)
-                print("[INFO] Modo Stealth ativado.")
             except: pass
-        
-        print("[INFO] Acessando Instagram...")
-        await page.goto("https://www.instagram.com/accounts/login/", wait_until="domcontentloaded", timeout=60000)
-        
-        try:
-            await page.wait_for_selector('svg[aria-label="Página inicial"]', timeout=8000)
-            print("[LOGIN] Sessão ativa ok.")
-        except:
-            print("[LOGIN] Tentando login automático...")
-            if not INSTA_PASS:
-                print("⚠️ ERRO: Senha não configurada.")
-                await browser.close()
-                return
 
-            try:
-                # Se estiver na home mas não logado, clica em Entrar
-                if "login" not in page.url:
-                    await page.goto("https://www.instagram.com/accounts/login/", wait_until="domcontentloaded")
-                
-                await page.wait_for_selector('input[name="username"]', timeout=30000)
-                
-                # Simula digitação humana
-                async def type_human(selector, text):
-                    await page.click(selector)
-                    for char in text:
-                        await page.keyboard.press(char)
-                        await asyncio.sleep(random.uniform(0.1, 0.3))
+        # Fluxo de Login
+        logado = await efetuar_login_vps(page, context, session_file)
+        if not logado:
+            print("Encerrando execução por falha no acesso.")
+            await browser.close()
+            return
 
-                await type_human('input[name="username"]', INSTA_USER)
-                await asyncio.sleep(random.uniform(1, 2))
-                await type_human('input[name="password"]', INSTA_PASS)
-                await asyncio.sleep(random.uniform(1, 2))
-                
-                await page.click('button[type="submit"]')
-                
-                # Espera carregar ou pular anúncios de "Salvar Login"
-                await page.wait_for_selector('svg[aria-label="Página inicial"], button:has-text("Agora não"), button:has-text("Not Now")', timeout=30000)
-                
-                # Clica em "Agora não" se aparecer
-                for btn_text in ["Agora não", "Not Now"]:
-                    try:
-                        btn = await page.get_by_role("button", name=btn_text).first
-                        if await btn.is_visible(): await btn.click()
-                    except: pass
-                
-                await context.storage_state(path=session_file)
-                print("[LOGIN] Sucesso!")
-            except Exception as e:
-                print(f"❌ Erro no login: {e}")
-                await browser.close()
-                return
+        # Fluxo de Extração
+        print(f"[INFO] Acessando /@{username}/")
+        await page.goto(f"https://www.instagram.com/{username}/", wait_until="domcontentloaded", timeout=60000)
+        await page.wait_for_timeout(5000)
 
-        await page.goto(f"https://www.instagram.com/{username}/", wait_until="domcontentloaded")
-        
         postagens = []
         processados = set()
+        limite_ts = datetime.now().timestamp() - (ANOS_LIMITE * 365 * 24 * 60 * 60)
         parou = False
-        limite_timestamp = datetime.now().timestamp() - (ANOS_LIMITE * 365 * 24 * 60 * 60)
 
         while not parou:
-            posts_na_tela = await page.query_selector_all('a[href*="/p/"], a[href*="/reel/"]')
+            posts = await page.query_selector_all('a[href*="/p/"]') # Apenas fotos, ignora Reels
             novos = False
 
-            for post in posts_na_tela:
-                if len(processados) >= LIMITE_MAX_POSTS or parou:
-                    parou = True
-                    break
+            for post in posts:
+                if len(processados) >= LIMITE_MAX_POSTS:
+                    parou = True; break
                     
                 href = await post.get_attribute("href")
-                shortcode = re.search(r'/(?:p|reel)/([^/]+)', href).group(1)
+                match = re.search(r'/p/([^/]+)', href)
+                if not match: continue
                 
-                if shortcode in processados: continue
-                processados.add(shortcode)
+                code = match.group(1)
+                if code in processados: continue
+                
+                processados.add(code)
                 novos = True
 
-                if '/reel/' in href: continue
-
                 try:
+                    await post.scroll_into_view_if_needed()
+                    await page.wait_for_timeout(500)
                     await post.click(force=True)
-                    await page.wait_for_selector('role=dialog', timeout=10000)
-                    await page.wait_for_timeout(2000)
                     
-                    # Extrair Data
-                    time_elem = await page.query_selector('role=dialog time')
-                    dt_str = await time_elem.get_attribute('datetime')
+                    await page.wait_for_selector('role=dialog', timeout=15000)
+                    await page.wait_for_timeout(3000) # Deixa renderizar a foto
+
+                    # Pega Data
+                    time_el = await page.query_selector('role=dialog time')
+                    dt_str = await time_el.get_attribute('datetime')
                     dt = datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
-                    taken_at = dt.timestamp()
                     
-                    if taken_at < limite_timestamp:
-                        parou = True
-                        break
+                    if dt.timestamp() < limite_ts:
+                        parou = True; break
 
-                    # Extrair Legenda
-                    caption = ""
+                    # Pega Legenda Seguro
+                    legenda = ""
                     try:
-                        caption_elem = await page.query_selector('role=dialog article ul li span._a9zs')
-                        if not caption_elem:
-                            caption_elem = await page.query_selector('role=dialog article ul li span')
-                        if caption_elem:
-                            caption = await caption_elem.inner_text()
+                        spans = await page.query_selector_all('role=dialog article ul li span')
+                        for s in spans:
+                            txt = await s.inner_text()
+                            if len(txt) > 10 and username not in txt: # Heurística para achar o texto principal
+                                legenda = txt
+                                break
                     except: pass
-                    caption = re.sub(f"^{username}\\s*", "", caption, flags=re.IGNORECASE).strip()
 
-                    # Extrair Imagens (Carrossel)
-                    urls = []
-                    alt_texts = []
-                    for _ in range(12):
+                    # Pega Fotos Carrossel
+                    urls, alts = [], []
+                    for _ in range(10):
                         imgs = await page.query_selector_all('role=dialog img')
                         for img in imgs:
                             src = await img.get_attribute('src')
                             alt = await img.get_attribute('alt') or ""
                             if src and "cdninstagram" in src and src not in urls:
                                 urls.append(src)
-                                if alt: alt_texts.append(alt)
+                                if alt: alts.append(alt)
                         
-                        next_btn = await page.query_selector('button[aria-label="Avançar"], button[aria-label="Next"]')
-                        if next_btn:
-                            await next_btn.click(force=True)
+                        btn_next = await page.query_selector('button[aria-label="Avançar"], button[aria-label="Next"]')
+                        if btn_next:
+                            await btn_next.click(force=True)
                             await page.wait_for_timeout(1000)
                         else: break
 
                     await page.keyboard.press("Escape")
-                    await page.wait_for_timeout(500)
+                    await page.wait_for_timeout(1000)
 
-                    # Filtro e Categorização
-                    if passa_no_filtro(caption, alt_texts):
-                        categoria = categorizar_post(caption, alt_texts)
+                    cat = categorizar_post(legenda, alts)
+                    if cat:
                         postagens.append({
-                            "id": shortcode,
+                            "id": code,
                             "url": urls[0] if len(urls) == 1 else urls,
-                            "permalink": f"https://www.instagram.com/p/{shortcode}/",
-                            "caption": caption,
-                            "cat": categoria,
+                            "permalink": f"https://www.instagram.com/p/{code}/",
+                            "caption": legenda,
+                            "cat": cat,
                             "timestamp": dt.strftime("%Y-%m-%dT%H:%M:%S+0000")
                         })
-                        print(f"[POST] {len(postagens)}/{LIMITE_MAX_POSTS} | {categoria.upper()} - {shortcode}")
+                        print(f"✅ {len(postagens)}/{LIMITE_MAX_POSTS} | {cat.upper()} | {code}")
 
                 except Exception as e:
-                    print(f"[AVISO] Erro no post {shortcode}: {e}")
+                    print(f"⚠️ Pulo no post {code}: {e}")
                     await page.keyboard.press("Escape")
 
             if not novos and not parou:
-                await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                await page.evaluate("window.scrollBy(0, 1000)")
                 await page.wait_for_timeout(3000)
-            
+
         await browser.close()
         
-        filename = "src/data/instagram_final_filtrado.json"
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, "w", encoding="utf-8") as f:
+        path = "src/data/instagram_final_filtrado.json"
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(postagens, f, indent=4, ensure_ascii=False)
-        print(f"[ARQUIVO] Salvo: {filename}")
+        print(f"💾 Arquivo JSON salvo com sucesso!")
 
 async def main():
-    username = "jordaonunes"
     while True:
         try:
-            print(f"\n🚀 VERIFICAÇÃO: {datetime.now().strftime('%H:%M:%S')}")
-            await extrair_instagram_dom(username)
+            print(f"\n==========================================")
+            print(f"⚡ INICIANDO CICLO: {datetime.now().strftime('%H:%M:%S')}")
+            print(f"==========================================")
+            await extrair_perfil("jordaonunes")
             await asyncio.sleep(INTERVALO_MINUTOS * 60)
         except Exception as e:
-            print(f"❌ ERRO: {e}")
+            print(f"🔥 ERRO CRÍTICO NO LOOP: {e}")
             await asyncio.sleep(300)
 
 if __name__ == "__main__":
